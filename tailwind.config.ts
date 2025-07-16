@@ -33,10 +33,6 @@ const config = {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -44,6 +40,10 @@ const config = {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -53,19 +53,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom teal palette
+        // Custom Teal Palette
         teal: {
           50: "#e0f2f2",
-          100: "#b2e0e0",
-          200: "#80cdcd",
-          300: "#4dbaba",
-          400: "#26a8a8",
-          500: "#009696", // Base teal
-          600: "#008585",
-          700: "#007373",
-          800: "#006262",
-          900: "#005050",
-          950: "#003a3a",
+          100: "#b2dfdb",
+          200: "#80cbc4",
+          300: "#4db6ac",
+          400: "#26a69a",
+          500: "#009688",
+          600: "#00897b",
+          700: "#00796b",
+          800: "#00695c",
+          900: "#004d40",
+          950: "#00332b",
         },
       },
       borderRadius: {

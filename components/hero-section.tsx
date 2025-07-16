@@ -1,34 +1,49 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
+import { useInViewAnimation } from "@/hooks/use-in-view-animation"
 
 export default function HeroSection() {
+  const { ref, isInView } = useInViewAnimation({ threshold: 0.1 })
   return (
-    <section id="inicio" className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48 overflow-hidden">
+    <section
+      ref={ref}
+      className={`relative w-full h-[80vh] md:h-[90vh] flex items-center justify-center text-center px-4 overflow-hidden
+      transition-opacity duration-1000 ease-out ${isInView ? "opacity-100" : "opacity-0"}`}
+    >
       <Image
-        src="/placeholder.svg?height=1080&width=1920"
+        src="/placeholder.jpg" // Use a relevant background image
         alt="Hero Background"
-        width={1920}
-        height={1080}
-        className="absolute inset-0 h-full w-full object-cover opacity-20 dark:opacity-10"
-        priority
+        layout="fill"
+        objectFit="cover"
+        quality={100}
+        className="absolute inset-0 z-0"
       />
-      <div className="container relative z-10 px-4 md:px-6 text-center">
-        <div className="max-w-3xl mx-auto space-y-6" data-aos="fade-up">
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl dark:text-white">
-            INNOVACIÓN Y EFICIENCIA EN LA GESTIÓN DE COBRANZAS
-          </h1>
-          <p className="text-lg text-gray-700 md:text-xl dark:text-gray-300">
-            Somos una empresa de tecnología que desarrolla soluciones de software para la gestión de cobranzas.
-          </p>
-          <div className="flex justify-center">
-            <Link
-              href="#servicios"
-              className="inline-flex h-12 items-center justify-center rounded-md bg-teal-600 px-8 text-base font-medium text-white shadow hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 transition-colors"
-              prefetch={false}
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-teal-600/70 to-blue-800/70 dark:from-teal-800/70 dark:to-blue-950/70 z-10" />
+      <div className="relative z-20 text-white space-y-6">
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-lg">
+          Transformando Su Negocio con Tecnología
+        </h1>
+        <p className="mt-4 text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto drop-shadow-md">
+          Soluciones de software y hardware a medida para impulsar su innovación y eficiencia.
+        </p>
+        <div className="flex justify-center gap-4 mt-8">
+          <Link href="/servicios">
+            <Button className="px-8 py-3 text-lg bg-teal-600 hover:bg-teal-700 transition-colors duration-300">
+              Nuestros Servicios
+            </Button>
+          </Link>
+          <Link href="/#contacto">
+            <Button
+              className="px-8 py-3 text-lg border border-white text-white hover:bg-white hover:text-teal-600 transition-colors duration-300 bg-transparent"
+              variant="outline"
             >
-              Conocé más
-            </Link>
-          </div>
+              Contáctenos
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

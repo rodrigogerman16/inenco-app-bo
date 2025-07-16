@@ -1,26 +1,89 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import {
-  ArrowUpIcon,
-  CodeIcon,
-  GlobeIcon,
-  BrainIcon,
-  GraduationCapIcon,
-  NetworkIcon,
-  WrenchIcon,
-  RefreshCwIcon,
-  SmartphoneIcon,
-} from "lucide-react"
+import { ArrowUpIcon } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import { useInViewAnimation } from "@/hooks/use-in-view-animation" // Ensure this is imported
 
 export default function ServiciosPage() {
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const heroRef = useRef<HTMLDivElement>(null)
+  const [heroLoaded, setHeroLoaded] = useState(false)
+  const services = [
+    {
+      id: "desarrollo",
+      title: "Desarrollo",
+      summary:
+        "Creamos sistemas a medida que se adaptan perfectamente a las necesidades de su empresa, desde la formulación hasta la implementación. Nuestro equipo interdisciplinario asegura la mejor solución tecnológica para su negocio, impulsando la eficiencia y la innovación.",
+      imageSrc: "/placeholder.svg?text=Desarrollo",
+    },
+    {
+      id: "desarrollo-web",
+      title: "Desarrollo Web",
+      summary:
+        "Aproveche el poder de Internet para agilizar sus operaciones y difundir sus productos. Ofrecemos asesoramiento y soluciones para e-commerce, e-fulfillment, e-marketplace y e-payment, optimizando su presencia digital con la mejor relación precio/utilidad.",
+      imageSrc: "/placeholder.svg?text=Desarrollo+Web",
+    },
+    {
+      id: "business-intelligence",
+      title: "Business Intelligence",
+      summary:
+        "Transformamos grandes volúmenes de datos en información precisa y consolidada para una toma de decisiones estratégica. Nuestra experiencia en Data Warehousing y Business Intelligence le permite aplicar inteligencia a sus datos, aumentando la confianza en cada decisión de negocio.",
+      imageSrc: "/placeholder.svg?text=Business+Intelligence",
+    },
+    {
+      id: "capacitacion",
+      title: "Capacitación",
+      summary:
+        "Preparamos a sus recursos humanos para el constante cambio tecnológico. Desde la detección de necesidades hasta el dictado de cursos, nuestro servicio de capacitación asegura que sus recursos humanos evolucionen con la tecnología, manteniendo la ventaja competitiva de su organización.",
+      imageSrc: "/placeholder.svg?text=Capacitación",
+    },
+    {
+      id: "consultoria",
+      title: "Consultoría",
+      summary:
+        "Lo asistimos en la planificación, diseño e instalación de redes y equipamiento. Evaluamos sus redes existentes y diseñamos arquitecturas para sus necesidades actuales y futuras, capitalizando la tecnología de IT en oportunidades de negocio para su empresa.",
+      imageSrc: "/placeholder.svg?text=Consultoría",
+    },
+    {
+      id: "instalacion",
+      title: "Instalación",
+      summary:
+        'Nuestra fortaleza es la puesta a punto de sus servicios tecnológicos. Entregamos desarrollos "llave en mano" y ponemos en funcionamiento sus sistemas de IT con máxima funcionalidad y en el menor tiempo, con profesionales especialistas en cada producto o sector.',
+      imageSrc: "/placeholder.svg?text=Instalación",
+    },
+    {
+      id: "migracion",
+      title: "Migración",
+      summary:
+        "Lo ayudamos a actualizar su hardware, sistema operativo o software para lograr las mejores prestaciones. Realizamos la migración de datos y aplicativos entre distintas plataformas, guiándolo en los cambios operativos necesarios para una transición exitosa.",
+      imageSrc: "/placeholder.svg?text=Migración",
+    },
+    {
+      id: "soporte-tecnico",
+      title: "Soporte Técnico",
+      summary:
+        "Nuestros servicios no terminan con la instalación. Ofrecemos soporte técnico constante para hardware y software, asistiéndolo ante consultas o inconvenientes en el tiempo y la modalidad que su empresa necesite, demostrando nuestro interés en la atención continua de nuestros clientes.",
+      imageSrc: "/placeholder.svg?text=Soporte+Técnico",
+    },
+    {
+      id: "smartphone",
+      title: "Smartphone",
+      summary:
+        "El mercado móvil es clave para el crecimiento de su empresa. Desde 2010, nuestro equipo técnico se capacita en el desarrollo e implementación de soluciones para smartphones, ayudándole a aprovechar esta tecnología emergente para satisfacer la demanda de su mercado.",
+      imageSrc: "/placeholder.svg?text=Smartphone",
+    },
+  ]
+
+  const serviceAnimations = services.map(() => useInViewAnimation({ threshold: 0.1, unobserveOnEnter: true }))
 
   useEffect(() => {
+    // Hero fade-in effect
+    setHeroLoaded(true)
+
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowBackToTop(true)
@@ -34,153 +97,90 @@ export default function ServiciosPage() {
   }, [])
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const services = [
-    {
-      id: "desarrollo",
-      title: "Desarrollo",
-      summary:
-        "Creamos sistemas a medida que se adaptan perfectamente a las necesidades de su empresa, desde la formulación hasta la implementación. Nuestro equipo interdisciplinario garantiza soluciones tecnológicas que sostienen el cambio y la evolución de su negocio.",
-      icon: CodeIcon,
-      imageSrc: "/placeholder.svg?text=Desarrollo",
-    },
-    {
-      id: "desarrollo-web",
-      title: "Desarrollo Web",
-      summary:
-        "Aproveche el poder de Internet para agilizar operaciones y difundir sus productos. Ofrecemos asesoramiento y soporte para optimizar su presencia online, incluyendo e-fulfillment, e-marketplace, e-payment, diseño web, e-commerce, email marketing y social media.",
-      icon: GlobeIcon,
-      imageSrc: "/placeholder.svg?text=Desarrollo+Web",
-    },
-    {
-      id: "business-intelligence",
-      title: "Business Intelligence",
-      summary:
-        "Transformamos grandes volúmenes de datos en información precisa y oportuna para la toma de decisiones estratégicas. Aplicamos inteligencia en la creación de estructuras de datos únicas y consolidadas, ofreciendo asesoramiento y servicios en Data Warehousing y Business Intelligence.",
-      icon: BrainIcon,
-      imageSrc: "/placeholder.svg?text=Business+Intelligence",
-    },
-    {
-      id: "capacitacion",
-      title: "Capacitación",
-      summary:
-        "Impulse la ventaja competitiva de su empresa con la constante capacitación de sus recursos humanos. Nuestro servicio abarca desde la detección de necesidades hasta el dictado de cursos en todas las tecnologías que proveemos, asegurando la evolución tecnológica de su equipo.",
-      icon: GraduationCapIcon,
-      imageSrc: "/placeholder.svg?text=Capacitación",
-    },
-    {
-      id: "consultoria",
-      title: "Consultoría",
-      summary:
-        "Lo asistimos en la planificación, diseño e instalación de redes y equipamiento. Evaluamos sus redes existentes y desarrollamos estrategias de diseño e implementación para sus necesidades actuales y futuras, capitalizando la tecnología IT en oportunidades de negocio.",
-      icon: NetworkIcon,
-      imageSrc: "/placeholder.svg?text=Consultoría",
-    },
-    {
-      id: "instalacion",
-      title: "Instalación",
-      summary:
-        "Nuestra fortaleza es la puesta a punto de los servicios tecnológicos. Entregamos desarrollos 'llave en mano' y ponemos en funcionamiento sus sistemas IT con máxima funcionalidad y en el menor tiempo, instalando hardware, periféricos y software con profesionales especialistas.",
-      icon: WrenchIcon,
-      imageSrc: "/placeholder.svg?text=Instalación",
-    },
-    {
-      id: "migracion",
-      title: "Migración",
-      summary:
-        "Lo ayudamos a actualizar su hardware, sistema operativo o software para lograr las mejores prestaciones. Realizamos la migración de datos y aplicativos entre distintas plataformas, y nuestros profesionales lo guiarán en los cambios operativos necesarios.",
-      icon: RefreshCwIcon,
-      imageSrc: "/placeholder.svg?text=Migración",
-    },
-    {
-      id: "soporte-tecnico",
-      title: "Soporte Técnico",
-      summary:
-        "Ofrecemos atención constante a nuestros clientes con soporte técnico de hardware y/o software. Lo asistimos ante consultas o inconvenientes, en los tiempos y la modalidad que su empresa necesite, asegurando la continuidad de sus operaciones.",
-      icon: WrenchIcon,
-      imageSrc: "/placeholder.svg?text=Soporte+Técnico",
-    },
-    {
-      id: "smartphone",
-      title: "Smartphone",
-      summary:
-        "Aproveche la tecnología móvil para el crecimiento de su empresa. Desde 2010, nuestro equipo técnico se capacita en el desarrollo e implementación de soluciones sobre dispositivos smartphone, ayudándolo a satisfacer las nuevas demandas del mercado.",
-      icon: SmartphoneIcon,
-      imageSrc: "/placeholder.svg?text=Smartphone",
-    },
-  ]
-
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+    <div className="flex flex-col min-h-[100dvh]">
       <Header />
       <main className="flex-1">
         {/* Hero Section */}
         <section
-          className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center px-4 overflow-hidden bg-cover bg-center"
-          style={{ backgroundImage: "url('/placeholder.svg?height=800&width=1200')" }}
+          ref={heroRef}
+          className={`relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center text-center px-4 transition-opacity duration-1000 ${
+            heroLoaded ? "opacity-100" : "opacity-0"
+          }`}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-600/70 to-blue-800/70"></div>
-          <div className="relative z-10 space-y-4">
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg">Nuestros Servicios</h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow-md">
+          <Image
+            src="/placeholder.svg?height=1080&width=1920&text=Nuestros+Servicios"
+            alt="Servicios Hero Background"
+            layout="fill"
+            objectFit="cover"
+            quality={100}
+            className="absolute inset-0 z-0"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-600/70 to-blue-800/70 z-10" />
+          <div className="relative z-20 text-white space-y-4">
+            <h1 className="text-4xl md:text-6xl font-bold drop-shadow-lg">Nuestros Servicios</h1>
+            <p className="text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
               Soluciones tecnológicas innovadoras para impulsar su negocio.
             </p>
           </div>
         </section>
 
         {/* Services Sections */}
-        <section className="py-16 md:py-24 px-4 md:px-8 lg:px-16 max-w-6xl mx-auto">
-          {services.map((service, index) => (
-            <div key={service.id}>
-              <div
-                id={service.id}
-                className={`relative flex flex-col lg:flex-row items-center gap-8 md:gap-12 p-8 rounded-lg overflow-hidden shadow-xl bg-white dark:bg-gray-800 group ${
-                  index % 2 === 0 ? "lg:pr-16" : "lg:pl-16 lg:flex-row-reverse"
-                }`}
-              >
-                {/* Background Image */}
-                <Image
-                  src={service.imageSrc || "/placeholder.svg"}
-                  alt={`Background for ${service.title}`}
-                  layout="fill"
-                  objectFit="cover"
-                  className="absolute inset-0 opacity-40"
-                />
-                {/* Overlay for readability */}
-                <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
+        <section className="py-12 md:py-20">
+          <div className="container px-4 md:px-6">
+            {services.map((service, index) => {
+              const { ref, isInView } = serviceAnimations[index]
 
-                {/* Content */}
-                <div className="relative z-10 flex-1 text-center lg:text-left space-y-4">
-                  <h2 className="text-3xl md:text-4xl font-bold text-teal-600 dark:text-teal-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300">
-                    {service.title}
-                  </h2>
-                  <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">{service.summary}</p>
+              return (
+                <div key={service.id}>
+                  <div
+                    id={service.id}
+                    ref={ref} // Apply the ref from this specific hook call
+                    className={`relative flex flex-col lg:flex-row items-center gap-8 py-12 md:py-16 overflow-hidden
+                                transition-all duration-1000 ease-out
+                                ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`} // Fade-in from center
+                  >
+                    {/* Background Image for each section */}
+                    <Image
+                      src={service.imageSrc || "/placeholder.svg"}
+                      alt={`${service.title} Background`}
+                      layout="fill"
+                      objectFit="cover"
+                      quality={75}
+                      className="absolute inset-0 z-0 opacity-20" // 20% opacity
+                    />
+                    {/* Content Overlay to ensure readability */}
+                    <div className="absolute inset-0 z-10 bg-black/40" /> {/* Darker overlay for text contrast */}
+                    {/* Content */}
+                    <div className="relative z-20 flex-1 text-center lg:text-left space-y-4 px-6 md:px-12 py-8">
+                      <h2 className="text-3xl md:text-4xl font-bold text-white">{service.title}</h2>
+                      <p className="text-lg text-gray-200">{service.summary}</p>
+                    </div>
+                  </div>
+                  {index < services.length - 1 && (
+                    <hr className="my-16 border-t border-gray-300 dark:border-gray-700 w-1/2 mx-auto" />
+                  )}
                 </div>
-              </div>
-              {index < services.length - 1 && (
-                <hr className="my-16 border-t border-gray-300 dark:border-gray-700 w-1/2 mx-auto" />
-              )}
-            </div>
-          ))}
+              )
+            })}
+          </div>
         </section>
       </main>
-      <Footer />
 
-      {/* Back to Top Button */}
       {showBackToTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 rounded-full shadow-lg bg-teal-600 text-white hover:bg-teal-700 transition-all duration-300 z-50"
-          aria-label="Scroll to top"
+          className="fixed bottom-8 right-8 p-3 rounded-full shadow-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors z-50"
+          size="icon"
         >
           <ArrowUpIcon className="h-6 w-6" />
+          <span className="sr-only">Back to top</span>
         </Button>
       )}
+      <Footer />
     </div>
   )
 }
