@@ -1,0 +1,31 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { AOSInitializer } from "@/components/aos-initializer"
+
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "InencoApp - Innovación y Eficiencia en la Gestión de Cobranzas",
+  description: "Somos una empresa de tecnología que desarrolla soluciones de software para la gestión de cobranzas.",
+    generator: 'v0.dev'
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="es" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          {children}
+          <AOSInitializer />
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
