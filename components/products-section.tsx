@@ -2,24 +2,26 @@
 
 import { CardContent, Card, CardFooter } from "@/components/ui/card"
 import { useInViewAnimation } from "@/hooks/use-in-view-animation"
+import { useTilt } from "@/hooks/use-tilt" // Import the new hook
+
+const products = [
+  {
+    title: "Hardware",
+    description:
+      "Ofrecemos soluciones de hardware adaptadas a sus necesidades y presupuesto, optimizando la eficiencia de sus procesos de negocio con inversiones mínimas. Contamos con alianzas estratégicas para brindarle la mejor relación precio/rendimiento en diversas líneas de productos.",
+    icons: 4, // Number of placeholder icons
+  },
+  {
+    title: "Software",
+    description:
+      "Diseñamos plataformas de software para optimizar la productividad y tiempos de respuesta de su negocio. Nuestros acuerdos tecnológicos con empresas líderes nos permiten ofrecer las licencias y marcas que mejor se adapten a sus requerimientos.",
+    icons: 7, // Number of placeholder icons
+  },
+]
 
 export default function ProductsSection() {
   const { ref: sectionRef, isInView: sectionInView } = useInViewAnimation({ threshold: 0.1 })
-
-  const products = [
-    {
-      title: "Hardware",
-      description:
-        "Ofrecemos soluciones de hardware adaptadas a sus necesidades y presupuesto, optimizando la eficiencia de sus procesos de negocio con inversiones mínimas. Contamos con alianzas estratégicas para brindarle la mejor relación precio/rendimiento en diversas líneas de productos.",
-      icons: 4, // Number of placeholder icons
-    },
-    {
-      title: "Software",
-      description:
-        "Diseñamos plataformas de software para optimizar la productividad y tiempos de respuesta de su negocio. Nuestros acuerdos tecnológicos con empresas líderes nos permiten ofrecer las licencias y marcas que mejor se adapten a sus requerimientos.",
-      icons: 7, // Number of placeholder icons
-    },
-  ]
+  const tiltData = products.map((_, index) => useTilt({ maxTilt: 5, scale: 1.03 }))
 
   return (
     <section id="productos" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-950">
@@ -40,30 +42,35 @@ export default function ProductsSection() {
           </div>
         </div>
         <div className="mx-auto grid max-w-5xl items-start gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-          {products.map((product, index) => (
-            <Card
-              key={index}
-              className={`flex flex-col items-center justify-center space-y-4 p-6 text-center transition-all duration-700 ease-out hover:shadow-lg dark:bg-gray-900 ${
-                sectionInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }} // Stagger animation
-            >
-              <CardContent className="flex flex-col items-center space-y-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{product.title}</h3>
-                <p className="text-gray-500 dark:text-gray-400">{product.description}</p>
-              </CardContent>
-              <CardFooter className="flex flex-wrap justify-center gap-2 mt-4">
-                {[...Array(product.icons)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-sm font-semibold"
-                  >
-                    {i + 1}
-                  </div>
-                ))}
-              </CardFooter>
-            </Card>
-          ))}
+          {products.map((product, index) => {
+            const { ref: tiltRef, tiltStyle } = tiltData[index] // Get the specific tilt ref and style for this card
+
+            return (
+              <Card
+                key={index}
+                ref={tiltRef} // Attach the tilt ref to the Card
+                className={`flex flex-col items-center justify-center space-y-4 p-6 text-center transition-all duration-700 ease-out hover:shadow-lg dark:bg-gray-900 ${
+                  sectionInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+                }`}
+                style={{ ...tiltStyle, transitionDelay: `${index * 100}ms` }} // Apply tilt style and stagger animation
+              >
+                <CardContent className="flex flex-col items-center space-y-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50">{product.title}</h3>
+                  <p className="text-gray-500 dark:text-gray-400">{product.description}</p>
+                </CardContent>
+                <CardFooter className="flex flex-wrap justify-center gap-2 mt-4">
+                  {[...Array(product.icons)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-sm font-semibold"
+                    >
+                      {i + 1}
+                    </div>
+                  ))}
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       </div>
     </section>
