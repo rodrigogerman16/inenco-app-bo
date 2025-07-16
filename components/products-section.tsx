@@ -8,13 +8,13 @@ const products = [
   {
     title: "Hardware",
     description:
-      "Ofrecemos soluciones de hardware adaptadas a sus necesidades y presupuesto, optimizando la eficiencia de sus procesos de negocio con inversiones mínimas. Contamos con alianzas estratégicas para brindarle la mejor relación precio/rendimiento en diversas líneas de productos.",
+      "Ofrecemos soluciones de hardware personalizadas que se ajustan a sus necesidades operativas y presupuesto, optimizando la eficiencia de sus procesos con una inversión inteligente. Gracias a nuestras alianzas estratégicas con fabricantes líderes, garantizamos una excelente relación costo-beneficio en una amplia gama de productos tecnológicos.",
     icons: 4, // Number of placeholder icons
   },
   {
     title: "Software",
     description:
-      "Diseñamos plataformas de software para optimizar la productividad y tiempos de respuesta de su negocio. Nuestros acuerdos tecnológicos con empresas líderes nos permiten ofrecer las licencias y marcas que mejor se adapten a sus requerimientos.",
+      "Desarrollamos soluciones de software a medida para impulsar la productividad y agilizar los procesos de su empresa. Gracias a nuestras alianzas estratégicas con líderes tecnológicos, ofrecemos licencias y herramientas de vanguardia que se adaptan perfectamente a las necesidades específicas de su negocio.",
     icons: 7, // Number of placeholder icons
   },
 ]
@@ -49,7 +49,7 @@ export default function ProductsSection() {
               <Card
                 key={index}
                 ref={tiltRef} // Attach the tilt ref to the Card
-                className={`flex flex-col items-center justify-center space-y-4 p-6 text-center transition-all duration-700 ease-out hover:shadow-lg dark:bg-gray-900 ${
+                className={`flex flex-col items-center h-full justify-center space-y-4 p-6 text-center transition-all duration-700 ease-out hover:shadow-lg dark:bg-gray-900 ${
                   sectionInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                 }`}
                 style={{ ...tiltStyle, transitionDelay: `${index * 100}ms` }} // Apply tilt style and stagger animation
