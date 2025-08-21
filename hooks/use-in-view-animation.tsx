@@ -2,42 +2,72 @@
 
 import { useEffect, useRef, useState } from "react"
 
-interface UseInViewAnimationOptions extends IntersectionObserverInit {
-  unobserveOnEnter?: boolean // New option to stop observing once element enters view
+interface UseInViewAnimationOptions {
+  direction?: "left" | "right" | "up" | "down" | "center"
+  duration?: number
+  delay?: number
+  threshold?: number
 }
 
-export function useInViewAnimation(options?: UseInViewAnimationOptions) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [isInView, setIsInView] = useState(false) // Initial state is false
-  const unobserveOnEnter = options?.unobserveOnEnter ?? true
+export function useInViewAnimation({
+  direction = "up",
+  duration = 600,
+  delay = 0,
+  threshold = 0.1,
+}: UseInViewAnimationOptions = {}) {
+  const ref = useRef<HTMLElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Set isInView based on current intersection status
-        setIsInView(entry.isIntersecting) // This is the key change
-
-        if (entry.isIntersecting && unobserveOnEnter) {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
           observer.unobserve(entry.target)
         }
       },
-      {
-        root: options?.root,
-        rootMargin: options?.rootMargin,
-        threshold: options?.threshold ?? 0,
-      },
+      { threshold },
     )
 
-    if (ref.current) {
-      observer.observe(ref.current)
+    const currentRef = ref.current
+    if (currentRef) {
+      observer.observe(currentRef)
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current)
+      if (currentRef) {
+        observer.unobserve(currentRef)
       }
     }
-  }, [options?.root, options?.rootMargin, options?.threshold, unobserveOnEnter])
+  }, [threshold])
 
-  return { ref, isInView }
+  const getTransform = () => {
+    if (isVisible) return "translate3d(0, 0, 0)"
+
+    switch (direction) {
+      case "left":
+        return "translate3d(-50px, 0, 0)"
+      case "right":
+        return "translate3d(50px, 0, 0)"
+      case "up":
+        return "translate3d(0, 50px, 0)"
+      case "down":
+        return "translate3d(0, -50px, 0)"
+      case "center":
+        return "translate3d(0, 0, 0) scale(0.8)"
+      default:
+        return "translate3d(0, 50px, 0)"
+    }
+  }
+
+  const style = {
+    opacity: isVisible ? 1 : 0,
+    transform: getTransform(),
+    transitionProperty: "opacity, transform",
+    transitionDuration: `${duration}ms`,
+    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+    transitionDelay: `${delay}ms`,
+  }
+
+  return { ref, style, isVisible }
 }

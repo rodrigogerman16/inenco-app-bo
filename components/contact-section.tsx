@@ -14,9 +14,7 @@ export default function ContactSection() {
       <div className="container px-4 md:px-6">
         <div
           ref={ref}
-          className={`flex flex-col items-center justify-center space-y-4 text-center transition-all duration-1000 ease-out ${
-            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
+          className={`flex flex-col items-center justify-center space-y-4 text-center`}
         >
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900 dark:text-gray-50">

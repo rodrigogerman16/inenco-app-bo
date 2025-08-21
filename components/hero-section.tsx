@@ -10,8 +10,7 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className={`relative w-full h-[80vh] md:h-[90vh] flex items-center justify-center text-center px-4 overflow-hidden
-      transition-opacity duration-1000 ease-out ${isInView ? "opacity-100" : "opacity-0"}`}
+      className={`relative w-full h-[80vh] md:h-[90vh] flex items-center justify-center text-center px-4 overflow-hidden`}
     >
       <Image
         src="/placeholder.jpg" // Use a relevant background image

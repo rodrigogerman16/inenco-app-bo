@@ -2,6 +2,8 @@
 
 import { useInViewAnimation } from "@/hooks/use-in-view-animation"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { type Client, getAllClients } from "@/lib/database"
 
 // Import necessary components
 import {
@@ -18,22 +20,54 @@ import { ChevronDown } from "lucide-react"
 
 export default function ClientsSection() {
   const { ref, isInView } = useInViewAnimation({ threshold: 0.1 })
-  const clients = [
-    { name: "Client A", logo: "/placeholder-logo.svg" },
-    { name: "Client B", logo: "/placeholder-logo.svg" },
-    { name: "Client C", logo: "/placeholder-logo.svg" },
-    { name: "Client D", logo: "/placeholder-logo.svg" },
-    { name: "Client E", logo: "/placeholder-logo.svg" },
-    { name: "Client F", logo: "/placeholder-logo.svg" },
-  ]
+  const [clients, setClients] = useState<Client[]>([])
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const clientsData = await getAllClients()
+        setClients(clientsData)
+      } catch (error) {
+        console.error("Error fetching clients:", error)
+        // Fallback to default clients if there's an error
+        setClients([
+          { id: "1", name: "Client A", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+          { id: "2", name: "Client B", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+          { id: "3", name: "Client C", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+          { id: "4", name: "Client D", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+          { id: "5", name: "Client E", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+          { id: "6", name: "Client F", logo: "/placeholder-logo.svg", createdAt: "", updatedAt: "" },
+        ])
+      }
+    }
+
+    fetchClients()
+  }, [])
+
+  // Group clients alphabetically for dropdown
+  const groupedClients = clients.reduce(
+    (acc, client) => {
+      const firstLetter = client.name.charAt(0).toUpperCase()
+      if (firstLetter >= "A" && firstLetter <= "F") {
+        acc["A-F"].push(client)
+      } else if (firstLetter >= "G" && firstLetter <= "L") {
+        acc["G-L"].push(client)
+      } else if (firstLetter >= "M" && firstLetter <= "R") {
+        acc["M-R"].push(client)
+      } else {
+        acc["S-Z"].push(client)
+      }
+      return acc
+    },
+    { "A-F": [] as Client[], "G-L": [] as Client[], "M-R": [] as Client[], "S-Z": [] as Client[] },
+  )
+
   return (
     <section id="clientes" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-950">
       <div className="container px-4 md:px-6 text-center">
         <div
           ref={ref}
-          className={`space-y-4 transition-all duration-1000 ease-out ${
-            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
+          className={`space-y-4`}
         >
           <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900 dark:text-gray-50">
             Nuestros Clientes
@@ -44,12 +78,10 @@ export default function ClientsSection() {
           </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mt-12">
-          {clients.map((client, index) => (
+          {clients.slice(0, 6).map((client, index) => (
             <div
-              key={index}
-              className={`flex items-center justify-center transition-all duration-700 ease-out ${
-                isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"
-              }`}
+              key={client.id}
+              className={`flex items-center justify-center`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <Image
@@ -84,54 +116,22 @@ export default function ClientsSection() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between bg-transparent">
-                      A - F <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                    <DropdownMenuItem>Cliente Alpha</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Beta</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Gamma</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between bg-transparent">
-                      G - L <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                    <DropdownMenuItem>Cliente Delta</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Epsilon</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Zeta</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between bg-transparent">
-                      M - R <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                    <DropdownMenuItem>Cliente Eta</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Theta</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Iota</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between bg-transparent">
-                      S - Z <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                    <DropdownMenuItem>Cliente Kappa</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Lambda</DropdownMenuItem>
-                    <DropdownMenuItem>Cliente Mu</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {Object.entries(groupedClients).map(([range, rangeClients]) => (
+                  <DropdownMenu key={range}>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between bg-transparent">
+                        {range} <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                      {rangeClients.length > 0 ? (
+                        rangeClients.map((client) => <DropdownMenuItem key={client.id}>{client.name}</DropdownMenuItem>)
+                      ) : (
+                        <DropdownMenuItem disabled>No hay clientes en este rango</DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ))}
               </div>
             </DialogContent>
           </Dialog>

@@ -33,9 +33,7 @@ export default function ServicesSection() {
       <div className="container px-4 md:px-6">
         <div
           ref={sectionRef}
-          className={`flex flex-col items-center justify-center space-y-4 text-center transition-all duration-1000 ease-out ${
-            sectionInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
+          className={`flex flex-col items-center justify-center space-y-4 text-center`}
         >
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900 dark:text-gray-50">
@@ -50,9 +48,7 @@ export default function ServicesSection() {
           {services.map((service, index) => (
             <Card
               key={index}
-              className={`flex flex-col items-center justify-center space-y-4 p-6 text-center transition-all duration-700 ease-out hover:shadow-lg dark:bg-gray-900 ${
-                sectionInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
+              className={`flex flex-col items-center justify-center space-y-4 p-6 text-center`}
               style={{ transitionDelay: `${index * 100}ms` }} // Stagger animation
             >
               <CardContent className="flex flex-col items-center space-y-4">
