@@ -1,4 +1,5 @@
 "use client"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,22 +12,29 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface DeleteConfirmDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: () => void
   title: string
   description: string
-  onConfirm: () => void
-  onCancel: () => void
 }
 
-export default function DeleteConfirmDialog({ title, description, onConfirm, onCancel }: DeleteConfirmDialogProps) {
+export default function DeleteConfirmDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  description,
+}: DeleteConfirmDialogProps) {
   return (
-    <AlertDialog open={true} onOpenChange={(open) => !open && onCancel()}>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
             Eliminar
           </AlertDialogAction>

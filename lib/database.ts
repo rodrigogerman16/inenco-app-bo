@@ -1,284 +1,330 @@
-import { writeFileSync, readFileSync, existsSync } from "fs"
-import { join } from "path"
+// Mock data store for development/testing
+class MockDataStore {
+  private static instance: MockDataStore
+  private news: NewsItem[] = []
+  private users: User[] = []
+  private clients: any[] = []
+
+  private constructor() {
+    this.initializeData()
+  }
+
+  public static getInstance(): MockDataStore {
+    if (!MockDataStore.instance) {
+      MockDataStore.instance = new MockDataStore()
+    }
+    return MockDataStore.instance
+  }
+
+  private initializeData() {
+    // Initialize with sample news data
+    this.news = [
+      {
+        id: "1",
+        title: "Nueva Actualización de Sistema",
+        shortDescription:
+          "Hemos lanzado una nueva actualización con mejoras significativas en rendimiento y seguridad.",
+        content:
+          "Esta actualización incluye optimizaciones importantes que mejoran la velocidad de procesamiento en un 30% y nuevas características de seguridad que protegen mejor los datos de nuestros clientes.",
+        image: "/placeholder.svg?height=300&width=500&text=Sistema",
+        date: "2024-01-15",
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z",
+      },
+      {
+        id: "2",
+        title: "Expansión de Servicios",
+        shortDescription: "Ampliamos nuestra cobertura de servicios para atender mejor a nuestros clientes.",
+        content:
+          "Con esta expansión, ahora ofrecemos soporte 24/7 y nuevos servicios de consultoría especializada en transformación digital para empresas de todos los tamaños.",
+        image: "/placeholder.svg?height=300&width=500&text=Servicios",
+        date: "2024-01-10",
+        createdAt: "2024-01-10T09:00:00Z",
+        updatedAt: "2024-01-10T09:00:00Z",
+      },
+      {
+        id: "3",
+        title: "Certificación ISO Obtenida",
+        shortDescription: "Hemos obtenido la certificación ISO 27001 para gestión de seguridad de la información.",
+        content:
+          "Esta certificación demuestra nuestro compromiso con los más altos estándares de seguridad y calidad en el manejo de información confidencial de nuestros clientes.",
+        image: "/placeholder.svg?height=300&width=500&text=ISO",
+        date: "2024-01-05",
+        createdAt: "2024-01-05T08:00:00Z",
+        updatedAt: "2024-01-05T08:00:00Z",
+      },
+    ]
+
+    // Initialize with sample user data
+    this.users = [
+      {
+        id: "1",
+        email: "admin@inenco.com",
+        password: "admin123",
+        name: "Administrador",
+        role: "admin",
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ]
+
+    console.log(`🔄 MockDataStore: Initialized with ${this.news.length} news items and ${this.users.length} users`)
+  }
+
+  // News methods
+  async getAllNews(): Promise<NewsItem[]> {
+    console.log(`📰 MockDataStore: Getting all news (${this.news.length} items)`)
+    return [...this.news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }
+
+  async createNews(data: Omit<NewsItem, "id" | "createdAt" | "updatedAt">): Promise<NewsItem> {
+    const newNews: NewsItem = {
+      ...data,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    this.news.push(newNews)
+    console.log(`✅ MockDataStore: Created news with ID ${newNews.id}`)
+    return newNews
+  }
+
+  async updateNews(id: string, data: Partial<Omit<NewsItem, "id" | "createdAt">>): Promise<NewsItem> {
+    const index = this.news.findIndex((item) => item.id === id)
+    if (index === -1) {
+      throw new Error(`News item with ID ${id} not found`)
+    }
+
+    this.news[index] = {
+      ...this.news[index],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    }
+
+    console.log(`✅ MockDataStore: Updated news with ID ${id}`)
+    return this.news[index]
+  }
+
+  async deleteNews(id: string): Promise<void> {
+    const index = this.news.findIndex((item) => item.id === id)
+    if (index === -1) {
+      throw new Error(`News item with ID ${id} not found`)
+    }
+
+    this.news.splice(index, 1)
+    console.log(`✅ MockDataStore: Deleted news with ID ${id}`)
+  }
+
+  // User methods
+  async getUserByEmail(email: string): Promise<User | null> {
+    const user = this.users.find((u) => u.email === email)
+    console.log(`👤 MockDataStore: Getting user by email ${email}: ${user ? "found" : "not found"}`)
+    return user || null
+  }
+
+  async createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
+    const newUser: User = {
+      ...data,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    }
+
+    this.users.push(newUser)
+    console.log(`✅ MockDataStore: Created user with ID ${newUser.id}`)
+    return newUser
+  }
+
+  // Client methods
+  async getAllClients(): Promise<any[]> {
+    return [...this.clients]
+  }
+
+  async createClient(data: any): Promise<any> {
+    const newClient = {
+      ...data,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    }
+
+    this.clients.push(newClient)
+    return newClient
+  }
+}
+
+// Types
+export interface NewsItem {
+  id: string
+  title: string
+  shortDescription: string
+  content: string
+  image: string
+  date: string
+  createdAt: string
+  updatedAt: string
+}
 
 export interface User {
   id: string
   email: string
   password: string
-}
-
-export interface NewsItem {
-  id: string
-  title: string
-  shortDescription: string
-  fullDescription: string
-  date: string
-  image?: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Client {
-  id: string
   name: string
-  email: string
-  phone?: string
-  company?: string
+  role: string
   createdAt: string
-  updatedAt: string
 }
 
-// File paths for data persistence
-const DATA_DIR = join(process.cwd(), "data")
-const USERS_FILE = join(DATA_DIR, "users.json")
-const NEWS_FILE = join(DATA_DIR, "news.json")
-const CLIENTS_FILE = join(DATA_DIR, "clients.json")
+// Supabase client (optional)
+let supabase: any = null
 
-// Ensure data directory exists
-if (typeof window === "undefined") {
-  try {
-    const fs = require("fs")
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true })
-    }
-  } catch (error) {
-    console.log("Data directory creation skipped in browser environment")
+try {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const { createClient } = require("@supabase/supabase-js")
+    supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    console.log("✅ Supabase client initialized")
+  } else {
+    console.log("⚠️ Supabase not configured, using mock data")
   }
+} catch (error) {
+  console.log("⚠️ Supabase not available, using mock data")
 }
 
-// Default data
-const defaultUsers: User[] = [
-  {
-    id: "1",
-    email: "admin@inenco.com",
-    password: "admin123", // In production, this should be hashed
-  },
-]
-
-const defaultNews: NewsItem[] = [
-  {
-    id: "1",
-    title: "Innovación en Soluciones Cloud para Empresas",
-    shortDescription:
-      "Descubra cómo nuestras nuevas herramientas basadas en la nube están revolucionando la gestión de datos.",
-    fullDescription:
-      "Descubra cómo nuestras nuevas herramientas basadas en la nube están revolucionando la gestión de datos y la colaboración en equipos remotos. Adaptamos la tecnología para impulsar su negocio hacia el futuro.",
-    date: "2024-07-15",
-    image: "/placeholder.svg?height=300&width=500&text=Cloud+Solutions",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "Seguridad Cibernética: Protegiendo sus Activos Digitales",
-    shortDescription: "En un mundo digital cada vez más complejo, la seguridad es primordial.",
-    fullDescription:
-      "En un mundo digital cada vez más complejo, la seguridad es primordial. Conozca nuestras estrategias avanzadas de ciberseguridad para proteger su información valiosa de amenazas emergentes.",
-    date: "2024-07-10",
-    image: "/placeholder.svg?height=300&width=500&text=Cybersecurity",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
-const defaultClients: Client[] = [
-  {
-    id: "1",
-    name: "Juan Pérez",
-    email: "juan@empresa.com",
-    phone: "+1234567890",
-    company: "Empresa ABC",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "María García",
-    email: "maria@empresa.com",
-    phone: "+0987654321",
-    company: "Empresa XYZ",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
-// Helper functions for file operations
-function readDataFile<T>(filePath: string, defaultData: T[]): T[] {
-  if (typeof window !== "undefined") {
-    // Browser environment - return default data
-    return defaultData
-  }
-
-  try {
-    if (existsSync(filePath)) {
-      const fileContent = readFileSync(filePath, "utf-8")
-      const data = JSON.parse(fileContent)
-      console.log(`📖 Loaded ${data.length} items from ${filePath}`)
-      return data
-    } else {
-      console.log(`📝 Creating new data file: ${filePath}`)
-      writeDataFile(filePath, defaultData)
-      return defaultData
-    }
-  } catch (error) {
-    console.error(`❌ Error reading data file ${filePath}:`, error)
-    return defaultData
-  }
-}
-
-function writeDataFile<T>(filePath: string, data: T[]): void {
-  if (typeof window !== "undefined") {
-    // Browser environment - skip file operations
-    return
-  }
-
-  try {
-    writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8")
-    console.log(`💾 Saved ${data.length} items to ${filePath}`)
-  } catch (error) {
-    console.error(`❌ Error writing data file ${filePath}:`, error)
-  }
-}
-
-// Load initial data
-const users = readDataFile(USERS_FILE, defaultUsers)
-let news = readDataFile(NEWS_FILE, defaultNews)
-let clients = readDataFile(CLIENTS_FILE, defaultClients)
-
-// User functions
-export async function getUserByEmail(email: string): Promise<User | null> {
-  return users.find((user) => user.email === email) || null
-}
+// Get the mock data store instance
+const mockStore = MockDataStore.getInstance()
 
 // News functions
 export async function getAllNews(): Promise<NewsItem[]> {
-  // Reload from file to get latest data
-  news = readDataFile(NEWS_FILE, defaultNews)
-  console.log("📰 Getting all news, total items:", news.length)
-  console.log(
-    "📋 News items:",
-    news.map((n) => ({ id: n.id, title: n.title })),
-  )
-  return [...news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-}
+  try {
+    if (supabase) {
+      console.log("🔄 Database: Getting news from Supabase...")
+      const { data, error } = await supabase.from("news").select("*").order("date", { ascending: false })
 
-export async function getNewsById(id: string): Promise<NewsItem | null> {
-  news = readDataFile(NEWS_FILE, defaultNews)
-  return news.find((item) => item.id === id) || null
+      if (error) throw error
+      console.log(`✅ Database: Retrieved ${data.length} news items from Supabase`)
+      return data
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
+  }
+
+  return await mockStore.getAllNews()
 }
 
 export async function createNews(data: Omit<NewsItem, "id" | "createdAt" | "updatedAt">): Promise<NewsItem> {
-  // Reload from file to get latest data
-  news = readDataFile(NEWS_FILE, defaultNews)
+  try {
+    if (supabase) {
+      console.log("🔄 Database: Creating news in Supabase...")
+      const { data: newNews, error } = await supabase.from("news").insert([data]).select().single()
 
-  const newItem: NewsItem = {
-    id: Date.now().toString(),
-    ...data,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+      if (error) throw error
+      console.log(`✅ Database: Created news in Supabase with ID ${newNews.id}`)
+      return newNews
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
   }
 
-  news.push(newItem)
-  writeDataFile(NEWS_FILE, news)
-
-  console.log("✅ News created successfully:", newItem)
-  console.log("📊 Total news items in database:", news.length)
-  console.log(
-    "📋 All news items:",
-    news.map((n) => ({ id: n.id, title: n.title })),
-  )
-  return newItem
+  return await mockStore.createNews(data)
 }
 
-export async function updateNews(
-  id: string,
-  data: Partial<Omit<NewsItem, "id" | "createdAt" | "updatedAt">>,
-): Promise<NewsItem | null> {
-  // Reload from file to get latest data
-  news = readDataFile(NEWS_FILE, defaultNews)
+export async function updateNews(id: string, data: Partial<Omit<NewsItem, "id" | "createdAt">>): Promise<NewsItem> {
+  try {
+    if (supabase) {
+      console.log(`🔄 Database: Updating news ${id} in Supabase...`)
+      const { data: updatedNews, error } = await supabase.from("news").update(data).eq("id", id).select().single()
 
-  const index = news.findIndex((item) => item.id === id)
-  if (index === -1) return null
-
-  news[index] = {
-    ...news[index],
-    ...data,
-    updatedAt: new Date().toISOString(),
+      if (error) throw error
+      console.log(`✅ Database: Updated news in Supabase with ID ${updatedNews.id}`)
+      return updatedNews
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
   }
 
-  writeDataFile(NEWS_FILE, news)
-  console.log("✅ News updated successfully:", news[index])
-  return news[index]
+  return await mockStore.updateNews(id, data)
 }
 
-export async function deleteNews(id: string): Promise<boolean> {
-  // Reload from file to get latest data
-  news = readDataFile(NEWS_FILE, defaultNews)
+export async function deleteNews(id: string): Promise<void> {
+  try {
+    if (supabase) {
+      console.log(`🔄 Database: Deleting news ${id} from Supabase...`)
+      const { error } = await supabase.from("news").delete().eq("id", id)
 
-  const index = news.findIndex((item) => item.id === id)
-  if (index === -1) return false
+      if (error) throw error
+      console.log(`✅ Database: Deleted news from Supabase with ID ${id}`)
+      return
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
+  }
 
-  const deletedItem = news[index]
-  news.splice(index, 1)
-  writeDataFile(NEWS_FILE, news)
+  return await mockStore.deleteNews(id)
+}
 
-  console.log("🗑️ News deleted successfully:", deletedItem.title)
-  console.log("📊 Remaining news items:", news.length)
-  return true
+// User functions
+export async function getUserByEmail(email: string): Promise<User | null> {
+  try {
+    if (supabase) {
+      console.log(`🔄 Database: Getting user by email from Supabase: ${email}`)
+      const { data, error } = await supabase.from("users").select("*").eq("email", email).single()
+
+      if (error && error.code !== "PGRST116") throw error
+      console.log(`✅ Database: User ${email} ${data ? "found" : "not found"} in Supabase`)
+      return data || null
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
+  }
+
+  return await mockStore.getUserByEmail(email)
+}
+
+export async function createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
+  try {
+    if (supabase) {
+      console.log("🔄 Database: Creating user in Supabase...")
+      const { data: newUser, error } = await supabase.from("users").insert([data]).select().single()
+
+      if (error) throw error
+      console.log(`✅ Database: Created user in Supabase with ID ${newUser.id}`)
+      return newUser
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
+  }
+
+  return await mockStore.createUser(data)
 }
 
 // Client functions
-export async function getAllClients(): Promise<Client[]> {
-  clients = readDataFile(CLIENTS_FILE, defaultClients)
-  return [...clients].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-}
+export async function getAllClients(): Promise<any[]> {
+  try {
+    if (supabase) {
+      console.log("🔄 Database: Getting clients from Supabase...")
+      const { data, error } = await supabase.from("clients").select("*").order("name", { ascending: true })
 
-export async function getClientById(id: string): Promise<Client | null> {
-  clients = readDataFile(CLIENTS_FILE, defaultClients)
-  return clients.find((client) => client.id === id) || null
-}
-
-export async function createClient(data: Omit<Client, "id" | "createdAt" | "updatedAt">): Promise<Client> {
-  clients = readDataFile(CLIENTS_FILE, defaultClients)
-
-  const newClient: Client = {
-    id: Date.now().toString(),
-    ...data,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+      if (error) throw error
+      console.log(`✅ Database: Retrieved ${data.length} clients from Supabase`)
+      return data
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
   }
 
-  clients.push(newClient)
-  writeDataFile(CLIENTS_FILE, clients)
-  return newClient
+  return await mockStore.getAllClients()
 }
 
-export async function updateClient(
-  id: string,
-  data: Partial<Omit<Client, "id" | "createdAt" | "updatedAt">>,
-): Promise<Client | null> {
-  clients = readDataFile(CLIENTS_FILE, defaultClients)
+export async function createClient(data: any): Promise<any> {
+  try {
+    if (supabase) {
+      console.log("🔄 Database: Creating client in Supabase...")
+      const { data: newClient, error } = await supabase.from("clients").insert([data]).select().single()
 
-  const index = clients.findIndex((client) => client.id === id)
-  if (index === -1) return null
-
-  clients[index] = {
-    ...clients[index],
-    ...data,
-    updatedAt: new Date().toISOString(),
+      if (error) throw error
+      console.log(`✅ Database: Created client in Supabase with ID ${newClient.id}`)
+      return newClient
+    }
+  } catch (error) {
+    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
   }
 
-  writeDataFile(CLIENTS_FILE, clients)
-  return clients[index]
-}
-
-export async function deleteClient(id: string): Promise<boolean> {
-  clients = readDataFile(CLIENTS_FILE, defaultClients)
-
-  const index = clients.findIndex((client) => client.id === id)
-  if (index === -1) return false
-
-  clients.splice(index, 1)
-  writeDataFile(CLIENTS_FILE, clients)
-  return true
+  return await mockStore.createClient(data)
 }
