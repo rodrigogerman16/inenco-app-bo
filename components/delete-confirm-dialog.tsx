@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,32 +11,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 interface DeleteConfirmDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
   onConfirm: () => void
-  title: string
-  description: string
+  children: React.ReactNode
 }
 
-export function DeleteConfirmDialog({ open, onOpenChange, onConfirm, title, description }: DeleteConfirmDialogProps) {
+export default function DeleteConfirmDialog({ onConfirm, children }: DeleteConfirmDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción no se puede deshacer. Esto eliminará permanentemente el elemento.
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Eliminar
-          </AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm}>Eliminar</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

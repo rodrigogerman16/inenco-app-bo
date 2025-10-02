@@ -1,129 +1,92 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createNews, updateNews, deleteNews, getAllNews } from "@/lib/database"
-import type { NewsItem } from "@/lib/database"
+import { getNews, getNewsById, createNews, updateNews, deleteNews, type NewsItem } from "@/lib/database"
 
 export async function getNewsAction(): Promise<NewsItem[]> {
   try {
-    console.log("🔄 Action: Getting all news...")
-    const news = await getAllNews()
-    console.log(`✅ Action: Retrieved ${news.length} news items`)
+    const news = await getNews()
     return news
   } catch (error) {
-    console.error("❌ Action: Error getting news:", error)
+    console.error("❌ Error getting news:", error)
     return []
+  }
+}
+
+export async function getNewsByIdAction(id: string): Promise<NewsItem | null> {
+  try {
+    return await getNewsById(id)
+  } catch (error) {
+    console.error("❌ Error getting news by id:", error)
+    return null
   }
 }
 
 export async function createNewsAction(prevState: any, formData: FormData) {
   try {
-    console.log("🔄 Action: Creating news...")
-
-    if (!formData) {
-      console.error("❌ Action: FormData is null")
-      return { error: "Datos del formulario no válidos" }
-    }
-
     const title = formData.get("title")?.toString()
     const shortDescription = formData.get("shortDescription")?.toString()
     const content = formData.get("content")?.toString()
     const image = formData.get("image")?.toString()
-    const date = formData.get("date")?.toString()
 
-    console.log("🔄 Action: Form data received:", { title, shortDescription, content, image, date })
-
-    if (!title || !shortDescription || !content || !date) {
-      console.error("❌ Action: Missing required fields")
-      return { error: "Todos los campos requeridos deben ser completados" }
+    if (!title || !shortDescription || !content || !image) {
+      return { error: "Todos los campos son requeridos" }
     }
 
-    const newsData = {
-      title: title.trim(),
-      shortDescription: shortDescription.trim(),
-      content: content.trim(),
-      image: image?.trim() || "/placeholder.svg?height=300&width=500&text=Noticia",
-      date: date.trim(),
-    }
+    await createNews({
+      title,
+      shortDescription,
+      content,
+      image,
+    })
 
-    const newNews = await createNews(newsData)
-    console.log(`✅ Action: Created news with ID ${newNews.id}`)
-
-    // Revalidate all relevant paths
     revalidatePath("/")
-    revalidatePath("/dashboard")
     revalidatePath("/dashboard/news")
-    revalidatePath("/api/news")
 
-    return { success: true, message: "Noticia creada exitosamente", news: newNews }
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error creating news:", error)
+    console.error("❌ Error creating news:", error)
     return { error: "Error al crear la noticia" }
   }
 }
 
-export async function updateNewsAction(id: string, prevState: any, formData: FormData) {
+export async function updateNewsAction(prevState: any, formData: FormData) {
   try {
-    console.log(`🔄 Action: Updating news ${id}...`)
-
-    if (!formData) {
-      console.error("❌ Action: FormData is null")
-      return { error: "Datos del formulario no válidos" }
-    }
-
+    const id = formData.get("id")?.toString()
     const title = formData.get("title")?.toString()
     const shortDescription = formData.get("shortDescription")?.toString()
     const content = formData.get("content")?.toString()
     const image = formData.get("image")?.toString()
-    const date = formData.get("date")?.toString()
 
-    console.log("🔄 Action: Form data received:", { title, shortDescription, content, image, date })
-
-    if (!title || !shortDescription || !content || !date) {
-      console.error("❌ Action: Missing required fields")
-      return { error: "Todos los campos requeridos deben ser completados" }
+    if (!id || !title || !shortDescription || !content || !image) {
+      return { error: "Todos los campos son requeridos" }
     }
 
-    const updateData = {
-      title: title.trim(),
-      shortDescription: shortDescription.trim(),
-      content: content.trim(),
-      image: image?.trim() || "/placeholder.svg?height=300&width=500&text=Noticia",
-      date: date.trim(),
-    }
+    await updateNews(id, {
+      title,
+      shortDescription,
+      content,
+      image,
+    })
 
-    const updatedNews = await updateNews(id, updateData)
-    console.log(`✅ Action: Updated news with ID ${id}`)
-
-    // Revalidate all relevant paths
     revalidatePath("/")
-    revalidatePath("/dashboard")
     revalidatePath("/dashboard/news")
-    revalidatePath("/api/news")
 
-    return { success: true, message: "Noticia actualizada exitosamente", news: updatedNews }
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error updating news:", error)
+    console.error("❌ Error updating news:", error)
     return { error: "Error al actualizar la noticia" }
   }
 }
 
 export async function deleteNewsAction(id: string) {
   try {
-    console.log(`🔄 Action: Deleting news ${id}...`)
-
     await deleteNews(id)
-    console.log(`✅ Action: Deleted news with ID ${id}`)
-
-    // Revalidate all relevant paths
     revalidatePath("/")
-    revalidatePath("/dashboard")
     revalidatePath("/dashboard/news")
-    revalidatePath("/api/news")
-
-    return { success: true, message: "Noticia eliminada exitosamente" }
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error deleting news:", error)
+    console.error("❌ Error deleting news:", error)
     return { error: "Error al eliminar la noticia" }
   }
 }

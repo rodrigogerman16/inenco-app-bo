@@ -1,125 +1,111 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Edit, Trash2, Plus, Mail, Phone, Building } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import ClientForm from "./client-form"
 import DeleteConfirmDialog from "./delete-confirm-dialog"
-import { deleteClientAction } from "@/app/actions/clients"
+import { getClientsAction, deleteClientAction } from "@/app/actions/clients"
 import type { Client } from "@/lib/database"
+import Image from "next/image"
 
-interface ClientsManagerProps {
-  initialClients: Client[]
-}
+export default function ClientsManager() {
+  const [clients, setClients] = useState<Client[]>([])
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-export default function ClientsManager({ initialClients }: ClientsManagerProps) {
-  const [clients, setClients] = useState(initialClients)
-  const [editingClient, setEditingClient] = useState<Client | undefined>()
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isEditFormOpen, setIsEditFormOpen] = useState(false)
+  useEffect(() => {
+    loadClients()
+  }, [])
 
-  const handleFormSuccess = () => {
-    setIsFormOpen(false)
-    setIsEditFormOpen(false)
-    setEditingClient(undefined)
-    // Refresh the page to get updated data
-    window.location.reload()
+  async function loadClients() {
+    setLoading(true)
+    const data = await getClientsAction()
+    setClients(data)
+    setLoading(false)
   }
 
-  const handleDelete = async (id: string) => {
-    const result = await deleteClientAction(id)
-    if (result.success) {
-      setClients(clients.filter((client) => client.id !== id))
-    }
+  async function handleDelete(id: string) {
+    await deleteClientAction(id)
+    loadClients()
   }
 
-  const handleEdit = (client: Client) => {
-    setEditingClient(client)
-    setIsEditFormOpen(true)
+  function handleEdit(client: Client) {
+    setSelectedClient(client)
+    setIsDialogOpen(true)
+  }
+
+  function handleSuccess() {
+    setIsDialogOpen(false)
+    setSelectedClient(null)
+    loadClients()
+  }
+
+  if (loading) {
+    return <div className="text-center py-8">Cargando...</div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestión de Clientes</h2>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={() => setSelectedClient(null)}>
+              <Plus className="mr-2 h-4 w-4" />
               Nuevo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Nuevo Cliente</DialogTitle>
+              <DialogTitle>{selectedClient ? "Editar" : "Crear"} Cliente</DialogTitle>
             </DialogHeader>
-            <ClientForm onSuccess={handleFormSuccess} />
+            <ClientForm client={selectedClient || undefined} onSuccess={handleSuccess} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {clients.map((client) => (
           <Card key={client.id}>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{client.name}</CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Creado: {new Date(client.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <DeleteConfirmDialog
-                    onConfirm={() => handleDelete(client.id)}
-                    title="Eliminar Cliente"
-                    description="¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer."
-                  >
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </DeleteConfirmDialog>
-                </div>
+              <div className="relative h-24 mb-2 flex items-center justify-center">
+                <Image
+                  src={client.image || "/placeholder.svg"}
+                  alt={client.name}
+                  width={100}
+                  height={100}
+                  className="object-contain"
+                />
               </div>
+              <CardTitle className="text-lg text-center">{client.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">{client.email}</span>
-                </div>
-                {client.phone && (
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{client.phone}</span>
-                  </div>
-                )}
-                {client.company && (
-                  <div className="flex items-center space-x-2">
-                    <Building className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{client.company}</span>
-                  </div>
-                )}
+              <div className="flex gap-2 justify-center">
+                <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <DeleteConfirmDialog onConfirm={() => handleDelete(client.id)}>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </DeleteConfirmDialog>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Cliente</DialogTitle>
-          </DialogHeader>
-          <ClientForm client={editingClient} onSuccess={handleFormSuccess} />
-        </DialogContent>
-      </Dialog>
+      {clients.length === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground">No hay clientes. Crea uno para comenzar.</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

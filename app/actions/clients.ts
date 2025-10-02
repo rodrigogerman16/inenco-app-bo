@@ -1,92 +1,84 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAllClients, createClient, updateClient, deleteClient } from "@/lib/database"
-import type { Client } from "@/lib/database"
+import { getClients, getClientById, createClient, updateClient, deleteClient, type Client } from "@/lib/database"
 
 export async function getClientsAction(): Promise<Client[]> {
   try {
-    console.log("🔄 Action: Getting all clients...")
-    const clients = await getAllClients()
-    console.log(`✅ Action: Retrieved ${clients.length} clients`)
+    const clients = await getClients()
     return clients
   } catch (error) {
-    console.error("❌ Action: Error getting clients:", error)
+    console.error("❌ Error getting clients:", error)
     return []
+  }
+}
+
+export async function getClientByIdAction(id: string): Promise<Client | null> {
+  try {
+    return await getClientById(id)
+  } catch (error) {
+    console.error("❌ Error getting client by id:", error)
+    return null
   }
 }
 
 export async function createClientAction(prevState: any, formData: FormData) {
   try {
-    console.log("🔄 Action: Creating client...")
-
     const name = formData.get("name")?.toString()
-    const category = formData.get("category")?.toString()
+    const image = formData.get("image")?.toString()
 
-    if (!name || !category) {
-      return { error: "Nombre y categoría son requeridos" }
+    if (!name || !image) {
+      return { error: "Nombre e imagen son requeridos" }
     }
 
-    const clientData = {
-      name: name.trim(),
-      category: category.trim(),
-    }
+    await createClient({
+      name,
+      image,
+    })
 
-    const newClient = await createClient(clientData)
-    console.log(`✅ Action: Created client with ID ${newClient.id}`)
-
-    revalidatePath("/dashboard/clients")
     revalidatePath("/")
+    revalidatePath("/dashboard/clients")
 
-    return { success: true, message: "Cliente creado exitosamente", client: newClient }
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error creating client:", error)
+    console.error("❌ Error creating client:", error)
     return { error: "Error al crear el cliente" }
   }
 }
 
-export async function updateClientAction(id: string, prevState: any, formData: FormData) {
+export async function updateClientAction(prevState: any, formData: FormData) {
   try {
-    console.log(`🔄 Action: Updating client ${id}...`)
-
+    const id = formData.get("id")?.toString()
     const name = formData.get("name")?.toString()
-    const category = formData.get("category")?.toString()
+    const image = formData.get("image")?.toString()
 
-    if (!name || !category) {
-      return { error: "Nombre y categoría son requeridos" }
+    if (!id || !name || !image) {
+      return { error: "Todos los campos son requeridos" }
     }
 
-    const updateData = {
-      name: name.trim(),
-      category: category.trim(),
-    }
+    await updateClient(id, {
+      name,
+      image,
+    })
 
-    const updatedClient = await updateClient(id, updateData)
-    console.log(`✅ Action: Updated client with ID ${id}`)
-
-    revalidatePath("/dashboard/clients")
     revalidatePath("/")
+    revalidatePath("/dashboard/clients")
 
-    return { success: true, message: "Cliente actualizado exitosamente", client: updatedClient }
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error updating client:", error)
+    console.error("❌ Error updating client:", error)
     return { error: "Error al actualizar el cliente" }
   }
 }
 
 export async function deleteClientAction(id: string) {
   try {
-    console.log(`🔄 Action: Deleting client ${id}...`)
-
     await deleteClient(id)
-    console.log(`✅ Action: Deleted client with ID ${id}`)
-
-    revalidatePath("/dashboard/clients")
     revalidatePath("/")
-
-    return { success: true, message: "Cliente eliminado exitosamente" }
+    revalidatePath("/dashboard/clients")
+    return { success: true }
   } catch (error) {
-    console.error("❌ Action: Error deleting client:", error)
+    console.error("❌ Error deleting client:", error)
     return { error: "Error al eliminar el cliente" }
   }
 }

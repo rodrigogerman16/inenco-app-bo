@@ -1,59 +1,40 @@
-import "server-only"
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 
-const secretKey = process.env.JWT_SECRET || "your-secret-key-change-this-in-production"
-const key = new TextEncoder().encode(secretKey)
+const secret = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key-change-in-production")
 
-export interface SessionData {
-  userId: string
-  email: string
-  expiresAt: Date
-}
-
-export async function encrypt(payload: SessionData): Promise<string> {
-  return new SignJWT({ ...payload })
+export async function createSession(userId: string, email: string) {
+  const token = await new SignJWT({ userId, email })
     .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7 days")
-    .sign(key)
-}
-
-export async function decrypt(session: string | undefined = ""): Promise<SessionData | null> {
-  if (!session) return null
-
-  try {
-    const { payload } = await jwtVerify(session, key, {
-      algorithms: ["HS256"],
-    })
-    return payload as unknown as SessionData
-  } catch (error) {
-    console.error("Failed to verify session:", error)
-    return null
-  }
-}
-
-export async function createSession(userId: string, email: string): Promise<void> {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  const session = await encrypt({ userId, email, expiresAt })
+    .setExpirationTime("24h")
+    .sign(secret)
 
   const cookieStore = await cookies()
-  cookieStore.set("session", session, {
+  cookieStore.set("auth-token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    expires: expiresAt,
     sameSite: "lax",
-    path: "/",
+    maxAge: 60 * 60 * 24, // 24 hours
   })
 }
 
-export async function destroySession(): Promise<void> {
+export async function deleteSession() {
   const cookieStore = await cookies()
-  cookieStore.delete("session")
+  cookieStore.delete("auth-token")
 }
 
-export async function getSession(): Promise<SessionData | null> {
+export async function getSession() {
   const cookieStore = await cookies()
-  const session = cookieStore.get("session")?.value
-  return decrypt(session)
+  const token = cookieStore.get("auth-token")
+
+  if (!token) {
+    return null
+  }
+
+  try {
+    const verified = await jwtVerify(token.value, secret)
+    return verified.payload
+  } catch (error) {
+    return null
+  }
 }

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { getUserByEmail } from "@/lib/database"
-import { createSession, destroySession } from "@/lib/auth"
+import { createSession, deleteSession } from "@/lib/auth"
 
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email")?.toString()
@@ -37,10 +37,10 @@ export async function loginAction(prevState: any, formData: FormData) {
     return { error: "Error interno del servidor" }
   }
 
-  redirect("/dashboard")
+  redirect("/dashboard/news")
 }
 
 export async function logoutAction() {
-  await destroySession()
-  redirect("/admin")
+  await deleteSession()
+  redirect("/")
 }

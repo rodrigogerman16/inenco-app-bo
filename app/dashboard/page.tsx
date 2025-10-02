@@ -1,7 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, Settings } from "lucide-react"
+import { redirect } from "next/navigation"
 
 export default function DashboardPage() {
+  redirect("/dashboard/news")
+
   return (
     <div className="p-6 space-y-6">
       <div>

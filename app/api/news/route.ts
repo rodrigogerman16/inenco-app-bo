@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server"
-import { getAllNews } from "@/lib/database"
+import { getNews } from "@/lib/database"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    console.log("🔄 API: Fetching all news...")
-    const news = await getAllNews()
-    console.log(`✅ API: Retrieved ${news.length} news items`)
+    console.log("📡 API: Fetching news...")
+    const news = await getNews()
+    console.log(`📡 API: Found ${news.length} news items`)
 
     return NextResponse.json(news, {
       headers: {
-        "Cache-Control": "no-store, max-age=0",
+        "Content-Type": "application/json",
       },
     })
   } catch (error) {
