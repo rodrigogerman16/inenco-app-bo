@@ -4,94 +4,44 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock } from "lucide-react"
+import { Calendar } from "lucide-react"
 import type { NewsItem } from "@/lib/database"
 
 export default function NovedadesSection() {
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchNews = async () => {
-    try {
-      console.log("🔄 NovedadesSection: Fetching news...")
-      const response = await fetch("/api/news", {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log(`✅ NovedadesSection: Fetched ${data.length} news items`)
-      setNews(data)
-      setError(null)
-    } catch (error) {
-      console.error("❌ NovedadesSection: Error fetching news:", error)
-      setError("Error al cargar las noticias")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        console.log("🔄 NovedadesSection: Fetching news...")
+        const response = await fetch("/api/news", {
+          cache: "no-store",
+        })
+        const data = await response.json()
+        console.log(`✅ NovedadesSection: Fetched ${data.length} news items`)
+        setNews(data)
+      } catch (error) {
+        console.error("❌ NovedadesSection: Error fetching news:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchNews()
 
-    // Auto-refresh every 30 seconds to get latest news
+    // Auto-refresh every 30 seconds
     const interval = setInterval(fetchNews, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    } catch {
-      return dateString
-    }
-  }
-
   if (loading) {
     return (
-      <section id="novedades" className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Novedades</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Mantente al día con las últimas noticias y actualizaciones
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (error) {
-    return (
-      <section id="novedades" className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Novedades</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Mantente al día con las últimas noticias y actualizaciones
-            </p>
-          </div>
-          <div className="text-center text-red-600">
-            <p>{error}</p>
-            <button onClick={fetchNews} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Reintentar
-            </button>
+      <section id="novedades" className="py-16 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Novedades</h2>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         </div>
       </section>
@@ -100,79 +50,59 @@ export default function NovedadesSection() {
 
   if (news.length === 0) {
     return (
-      <section id="novedades" className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Novedades</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Mantente al día con las últimas noticias y actualizaciones
-            </p>
-          </div>
-          <div className="text-center text-gray-600">
-            <p>No hay noticias disponibles en este momento.</p>
-          </div>
+      <section id="novedades" className="py-16 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Novedades</h2>
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <p className="text-muted-foreground">No hay noticias disponibles en este momento</p>
+            </CardContent>
+          </Card>
         </div>
       </section>
     )
   }
 
   return (
-    <section id="novedades" className="py-20 bg-gradient-to-br from-gray-50 to-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Novedades</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Mantente al día con las últimas noticias y actualizaciones
-          </p>
-        </div>
-
-        <div className="max-w-6xl mx-auto">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {news.map((item) => (
-                <CarouselItem key={item.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                  <Card className="h-full hover:shadow-lg transition-shadow duration-300">
-                    <CardContent className="p-0">
-                      <div className="relative">
-                        <img
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.title}
-                          className="w-full h-48 object-cover rounded-t-lg"
-                        />
-                        <Badge className="absolute top-4 left-4 bg-blue-600 hover:bg-blue-700">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {formatDate(item.date)}
+    <section id="novedades" className="py-16 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-12">Novedades</h2>
+        <Carousel className="w-full max-w-5xl mx-auto">
+          <CarouselContent>
+            {news.map((item) => (
+              <CarouselItem key={item.id}>
+                <Card className="overflow-hidden">
+                  <div className="md:flex">
+                    <div className="md:w-1/2">
+                      <img
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.title}
+                        className="w-full h-64 md:h-full object-cover"
+                      />
+                    </div>
+                    <div className="md:w-1/2 p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Badge variant="secondary">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(item.date).toLocaleDateString("es-ES", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
                         </Badge>
                       </div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">{item.title}</h3>
-                        <p className="text-gray-600 mb-4 line-clamp-3">{item.shortDescription}</p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>Actualizado: {formatDate(item.updatedAt || item.createdAt)}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
-          </Carousel>
-        </div>
-
-        <div className="text-center mt-8">
-          <p className="text-sm text-gray-500">
-            Mostrando {news.length} {news.length === 1 ? "noticia" : "noticias"}
-          </p>
-        </div>
+                      <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                      <p className="text-muted-foreground mb-4">{item.shortDescription}</p>
+                      <p className="text-sm leading-relaxed">{item.content}</p>
+                    </div>
+                  </div>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
     </section>
   )

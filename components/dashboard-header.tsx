@@ -1,20 +1,32 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { logoutAction } from "@/app/actions/auth"
-import { LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { LogOut, User } from "lucide-react"
 
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  email: string
+}
+
+export function DashboardHeader({ email }: DashboardHeaderProps) {
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="flex justify-between items-center px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
-        <form action={logoutAction}>
-          <Button variant="outline" type="submit">
-            <LogOut className="h-4 w-4 mr-2" />
-            Cerrar Sesión
-          </Button>
-        </form>
+    <header className="border-b bg-background">
+      <div className="flex h-16 items-center px-6 justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">Panel de Administración</h2>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <User className="h-4 w-4" />
+            <span className="text-muted-foreground">{email}</span>
+          </div>
+          <form action={logoutAction}>
+            <Button type="submit" variant="outline" size="sm">
+              <LogOut className="h-4 w-4 mr-2" />
+              Salir
+            </Button>
+          </form>
+        </div>
       </div>
     </header>
   )

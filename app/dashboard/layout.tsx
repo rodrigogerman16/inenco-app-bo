@@ -1,14 +1,10 @@
 import type React from "react"
-import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import DashboardHeader from "@/components/dashboard-header"
-import DashboardSidebar from "@/components/dashboard-sidebar"
+import { getSession } from "@/lib/auth"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { DashboardSidebar } from "@/components/dashboard-sidebar"
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
 
   if (!session) {
@@ -16,11 +12,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="min-h-screen flex">
       <DashboardSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">{children}</main>
+      <div className="flex-1 flex flex-col">
+        <DashboardHeader email={session.email} />
+        <main className="flex-1 bg-muted/20">{children}</main>
       </div>
     </div>
   )

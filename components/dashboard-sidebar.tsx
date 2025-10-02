@@ -3,41 +3,54 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Home, FileText, Users, Settings } from "lucide-react"
+import { FileText, Users, LayoutDashboard } from "lucide-react"
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Noticias", href: "/dashboard", icon: FileText },
-  { name: "Clientes", href: "/dashboard/clients", icon: Users },
-  { name: "Soluciones", href: "/dashboard/solutions", icon: Settings },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Noticias",
+    href: "/dashboard/news",
+    icon: FileText,
+  },
+  {
+    name: "Clientes",
+    href: "/dashboard/clients",
+    icon: Users,
+  },
 ]
 
-export default function DashboardSidebar() {
+export function DashboardSidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="w-64 bg-gray-900 text-white min-h-screen">
-      <div className="p-6">
-        <h2 className="text-xl font-bold">INENCO Admin</h2>
+    <aside className="w-64 border-r bg-background">
+      <div className="flex h-16 items-center border-b px-6">
+        <h1 className="text-xl font-bold">Inenco Admin</h1>
       </div>
-      <nav className="mt-6">
+      <nav className="space-y-1 p-4">
         {navigation.map((item) => {
-          const Icon = item.icon
+          const isActive = pathname === item.href
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center px-6 py-3 text-sm font-medium hover:bg-gray-800 transition-colors",
-                pathname === item.href ? "bg-gray-800 border-r-2 border-blue-500" : "",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
-              <Icon className="h-5 w-5 mr-3" />
+              <item.icon className="h-4 w-4" />
               {item.name}
             </Link>
           )
         })}
       </nav>
-    </div>
+    </aside>
   )
 }

@@ -1,91 +1,64 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { createNewsAction, updateNewsAction } from "@/app/actions/news"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createNewsAction, updateNewsAction } from "@/app/actions/news"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 import type { NewsItem } from "@/lib/database"
 
 interface NewsFormProps {
   news?: NewsItem
   onSuccess?: () => void
-  onCancel?: () => void
 }
 
-export default function NewsForm({ news, onSuccess, onCancel }: NewsFormProps) {
+export function NewsForm({ news, onSuccess }: NewsFormProps) {
   const isEditing = !!news
 
-  const [createState, createFormAction, createPending] = useActionState(createNewsAction, null)
-  const [updateState, updateFormAction, updatePending] = useActionState(
-    updateNewsAction.bind(null, news?.id || ""),
-    null,
-  )
+  const action = isEditing ? updateNewsAction.bind(null, news.id) : createNewsAction
 
-  const state = isEditing ? updateState : createState
-  const formAction = isEditing ? updateFormAction : createFormAction
-  const pending = isEditing ? updatePending : createPending
+  const [state, formAction, isPending] = useActionState(action, null)
 
-  const handleSubmit = async (formData: FormData) => {
-    console.log("🔄 NewsForm: Submitting form...")
-
-    try {
-      const result = await formAction(formData)
-      console.log("📝 NewsForm: Form result:", result)
-
-      if (result?.success) {
-        console.log("✅ NewsForm: Form submitted successfully")
-        onSuccess?.()
-      } else if (result?.error) {
-        console.error("❌ NewsForm: Form submission failed:", result.error)
-      }
-    } catch (error) {
-      console.error("❌ NewsForm: Form submission failed:", error)
+  useEffect(() => {
+    if (state?.success && onSuccess) {
+      onSuccess()
     }
-  }
+  }, [state, onSuccess])
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{isEditing ? "Editar Noticia" : "Nueva Noticia"}</CardTitle>
+        <CardDescription>
+          {isEditing ? "Modifica los datos de la noticia" : "Completa los datos de la nueva noticia"}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={handleSubmit} className="space-y-6">
+        <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Título *</Label>
-            <Input
-              id="title"
-              name="title"
-              defaultValue={news?.title || ""}
-              required
-              placeholder="Ingrese el título de la noticia"
-            />
+            <Label htmlFor="title">Título*</Label>
+            <Input id="title" name="title" defaultValue={news?.title} required disabled={isPending} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="shortDescription">Descripción Corta *</Label>
+            <Label htmlFor="shortDescription">Descripción Corta*</Label>
             <Textarea
               id="shortDescription"
               name="shortDescription"
-              defaultValue={news?.shortDescription || ""}
+              defaultValue={news?.shortDescription}
               required
-              placeholder="Ingrese una descripción breve"
-              rows={3}
+              disabled={isPending}
+              rows={2}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Contenido *</Label>
-            <Textarea
-              id="content"
-              name="content"
-              defaultValue={news?.content || ""}
-              required
-              placeholder="Ingrese el contenido completo de la noticia"
-              rows={6}
-            />
+            <Label htmlFor="content">Contenido*</Label>
+            <Textarea id="content" name="content" defaultValue={news?.content} required disabled={isPending} rows={6} />
           </div>
 
           <div className="space-y-2">
@@ -94,44 +67,34 @@ export default function NewsForm({ news, onSuccess, onCancel }: NewsFormProps) {
               id="image"
               name="image"
               type="url"
-              defaultValue={news?.image || ""}
-              placeholder="https://ejemplo.com/imagen.jpg"
+              defaultValue={news?.image}
+              placeholder="/placeholder.svg?height=300&width=500&text=Noticia"
+              disabled={isPending}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date">Fecha *</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              defaultValue={news?.date || new Date().toISOString().split("T")[0]}
-              required
-            />
+            <Label htmlFor="date">Fecha*</Label>
+            <Input id="date" name="date" type="date" defaultValue={news?.date} required disabled={isPending} />
           </div>
 
           {state?.error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600 text-sm">{state.error}</p>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{state.error}</AlertDescription>
+            </Alert>
           )}
 
           {state?.success && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-green-600 text-sm">{state.message}</p>
-            </div>
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription>{state.message}</AlertDescription>
+            </Alert>
           )}
 
-          <div className="flex gap-4">
-            <Button type="submit" disabled={pending}>
-              {pending ? "Guardando..." : isEditing ? "Actualizar" : "Crear"}
-            </Button>
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancelar
-              </Button>
-            )}
-          </div>
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? "Guardando..." : isEditing ? "Actualizar Noticia" : "Crear Noticia"}
+          </Button>
         </form>
       </CardContent>
     </Card>

@@ -8,7 +8,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email")?.toString()
   const password = formData.get("password")?.toString()
 
-  console.log("Login attempt:", { email, password })
+  console.log("🔐 Login attempt:", { email })
 
   if (!email || !password) {
     return { error: "Email y contraseña son requeridos" }
@@ -16,7 +16,7 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   try {
     const user = await getUserByEmail(email)
-    console.log("User found:", user)
+    console.log("👤 User found:", user ? "yes" : "no")
 
     if (!user) {
       return { error: "Credenciales inválidas" }
@@ -24,16 +24,16 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     // Simple password comparison (in production, use bcrypt)
     const isValidPassword = user.password === password
-    console.log("Password valid:", isValidPassword)
+    console.log("🔑 Password valid:", isValidPassword)
 
     if (!isValidPassword) {
       return { error: "Credenciales inválidas" }
     }
 
     await createSession(user.id, user.email)
-    console.log("Session created successfully")
+    console.log("✅ Session created successfully")
   } catch (error) {
-    console.error("Login error:", error)
+    console.error("❌ Login error:", error)
     return { error: "Error interno del servidor" }
   }
 

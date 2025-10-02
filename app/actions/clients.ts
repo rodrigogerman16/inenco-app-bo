@@ -1,97 +1,92 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createClient, updateClient, deleteClient, getAllClients } from "@/lib/database"
-import { getSession } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { getAllClients, createClient, updateClient, deleteClient } from "@/lib/database"
+import type { Client } from "@/lib/database"
 
-async function requireAuth() {
-  const session = await getSession()
-  if (!session) {
-    redirect("/admin")
+export async function getClientsAction(): Promise<Client[]> {
+  try {
+    console.log("🔄 Action: Getting all clients...")
+    const clients = await getAllClients()
+    console.log(`✅ Action: Retrieved ${clients.length} clients`)
+    return clients
+  } catch (error) {
+    console.error("❌ Action: Error getting clients:", error)
+    return []
   }
-  return session
-}
-
-export async function getClientsAction() {
-  await requireAuth()
-  return await getAllClients()
 }
 
 export async function createClientAction(prevState: any, formData: FormData) {
-  await requireAuth()
-
-  const name = formData.get("name")?.toString()
-  const email = formData.get("email")?.toString()
-  const phone = formData.get("phone")?.toString()
-  const company = formData.get("company")?.toString()
-
-  if (!name || !email) {
-    return { error: "Nombre y email son requeridos" }
-  }
-
   try {
-    await createClient({
-      name,
-      email,
-      phone: phone || undefined,
-      company: company || undefined,
-    })
+    console.log("🔄 Action: Creating client...")
+
+    const name = formData.get("name")?.toString()
+    const category = formData.get("category")?.toString()
+
+    if (!name || !category) {
+      return { error: "Nombre y categoría son requeridos" }
+    }
+
+    const clientData = {
+      name: name.trim(),
+      category: category.trim(),
+    }
+
+    const newClient = await createClient(clientData)
+    console.log(`✅ Action: Created client with ID ${newClient.id}`)
 
     revalidatePath("/dashboard/clients")
-    return { success: "Cliente creado exitosamente" }
+    revalidatePath("/")
+
+    return { success: true, message: "Cliente creado exitosamente", client: newClient }
   } catch (error) {
-    console.error("Error creating client:", error)
+    console.error("❌ Action: Error creating client:", error)
     return { error: "Error al crear el cliente" }
   }
 }
 
-export async function updateClientAction(prevState: any, formData: FormData) {
-  await requireAuth()
-
-  const id = formData.get("id")?.toString()
-  const name = formData.get("name")?.toString()
-  const email = formData.get("email")?.toString()
-  const phone = formData.get("phone")?.toString()
-  const company = formData.get("company")?.toString()
-
-  if (!id || !name || !email) {
-    return { error: "ID, nombre y email son requeridos" }
-  }
-
+export async function updateClientAction(id: string, prevState: any, formData: FormData) {
   try {
-    const updated = await updateClient(id, {
-      name,
-      email,
-      phone: phone || undefined,
-      company: company || undefined,
-    })
+    console.log(`🔄 Action: Updating client ${id}...`)
 
-    if (!updated) {
-      return { error: "Cliente no encontrado" }
+    const name = formData.get("name")?.toString()
+    const category = formData.get("category")?.toString()
+
+    if (!name || !category) {
+      return { error: "Nombre y categoría son requeridos" }
     }
 
+    const updateData = {
+      name: name.trim(),
+      category: category.trim(),
+    }
+
+    const updatedClient = await updateClient(id, updateData)
+    console.log(`✅ Action: Updated client with ID ${id}`)
+
     revalidatePath("/dashboard/clients")
-    return { success: "Cliente actualizado exitosamente" }
+    revalidatePath("/")
+
+    return { success: true, message: "Cliente actualizado exitosamente", client: updatedClient }
   } catch (error) {
-    console.error("Error updating client:", error)
+    console.error("❌ Action: Error updating client:", error)
     return { error: "Error al actualizar el cliente" }
   }
 }
 
 export async function deleteClientAction(id: string) {
-  await requireAuth()
-
   try {
-    const deleted = await deleteClient(id)
-    if (!deleted) {
-      return { error: "Cliente no encontrado" }
-    }
+    console.log(`🔄 Action: Deleting client ${id}...`)
+
+    await deleteClient(id)
+    console.log(`✅ Action: Deleted client with ID ${id}`)
 
     revalidatePath("/dashboard/clients")
-    return { success: "Cliente eliminado exitosamente" }
+    revalidatePath("/")
+
+    return { success: true, message: "Cliente eliminado exitosamente" }
   } catch (error) {
-    console.error("Error deleting client:", error)
+    console.error("❌ Action: Error deleting client:", error)
     return { error: "Error al eliminar el cliente" }
   }
 }

@@ -3,7 +3,7 @@ class MockDataStore {
   private static instance: MockDataStore
   private news: NewsItem[] = []
   private users: User[] = []
-  private clients: any[] = []
+  private clients: Client[] = []
 
   private constructor() {
     this.initializeData()
@@ -67,16 +67,36 @@ class MockDataStore {
       },
     ]
 
-    console.log(`🔄 MockDataStore: Initialized with ${this.news.length} news items and ${this.users.length} users`)
+    // Initialize with sample client data
+    this.clients = [
+      {
+        id: "1",
+        name: "Empresa ABC",
+        category: "A - F",
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      },
+      {
+        id: "2",
+        name: "Corporación XYZ",
+        category: "O - Z",
+        createdAt: "2024-01-01T00:00:00Z",
+        updatedAt: "2024-01-01T00:00:00Z",
+      },
+    ]
+
+    console.log(
+      `🔄 MockDataStore: Initialized with ${this.news.length} news items, ${this.users.length} users, and ${this.clients.length} clients`,
+    )
   }
 
   // News methods
-  async getAllNews(): Promise<NewsItem[]> {
+  getAllNews(): NewsItem[] {
     console.log(`📰 MockDataStore: Getting all news (${this.news.length} items)`)
     return [...this.news].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  async createNews(data: Omit<NewsItem, "id" | "createdAt" | "updatedAt">): Promise<NewsItem> {
+  createNews(data: Omit<NewsItem, "id" | "createdAt" | "updatedAt">): NewsItem {
     const newNews: NewsItem = {
       ...data,
       id: Date.now().toString(),
@@ -89,7 +109,7 @@ class MockDataStore {
     return newNews
   }
 
-  async updateNews(id: string, data: Partial<Omit<NewsItem, "id" | "createdAt">>): Promise<NewsItem> {
+  updateNews(id: string, data: Partial<Omit<NewsItem, "id" | "createdAt">>): NewsItem {
     const index = this.news.findIndex((item) => item.id === id)
     if (index === -1) {
       throw new Error(`News item with ID ${id} not found`)
@@ -105,7 +125,7 @@ class MockDataStore {
     return this.news[index]
   }
 
-  async deleteNews(id: string): Promise<void> {
+  deleteNews(id: string): void {
     const index = this.news.findIndex((item) => item.id === id)
     if (index === -1) {
       throw new Error(`News item with ID ${id} not found`)
@@ -116,13 +136,13 @@ class MockDataStore {
   }
 
   // User methods
-  async getUserByEmail(email: string): Promise<User | null> {
+  getUserByEmail(email: string): User | null {
     const user = this.users.find((u) => u.email === email)
     console.log(`👤 MockDataStore: Getting user by email ${email}: ${user ? "found" : "not found"}`)
     return user || null
   }
 
-  async createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
+  createUser(data: Omit<User, "id" | "createdAt">): User {
     const newUser: User = {
       ...data,
       id: Date.now().toString(),
@@ -135,19 +155,34 @@ class MockDataStore {
   }
 
   // Client methods
-  async getAllClients(): Promise<any[]> {
-    return [...this.clients]
+  getAllClients(): Client[] {
+    return [...this.clients].sort((a, b) => a.name.localeCompare(b.name))
   }
 
-  async createClient(data: any): Promise<any> {
-    const newClient = {
+  createClient(data: Omit<Client, "id" | "createdAt" | "updatedAt">): Client {
+    const newClient: Client = {
       ...data,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
 
     this.clients.push(newClient)
     return newClient
+  }
+
+  updateClient(id: string, data: Partial<Client>): Client {
+    const index = this.clients.findIndex((c) => c.id === id)
+    if (index === -1) throw new Error("Client not found")
+
+    this.clients[index] = { ...this.clients[index], ...data, updatedAt: new Date().toISOString() }
+    return this.clients[index]
+  }
+
+  deleteClient(id: string): void {
+    const index = this.clients.findIndex((c) => c.id === id)
+    if (index === -1) throw new Error("Client not found")
+    this.clients.splice(index, 1)
   }
 }
 
@@ -172,159 +207,69 @@ export interface User {
   createdAt: string
 }
 
-// Supabase client (optional)
-let supabase: any = null
-
-try {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    const { createClient } = require("@supabase/supabase-js")
-    supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    console.log("✅ Supabase client initialized")
-  } else {
-    console.log("⚠️ Supabase not configured, using mock data")
-  }
-} catch (error) {
-  console.log("⚠️ Supabase not available, using mock data")
+export interface Client {
+  id: string
+  name: string
+  category: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Get the mock data store instance
 const mockStore = MockDataStore.getInstance()
 
+// For now, we'll use mock data exclusively since Supabase is causing issues
+console.log("ℹ️ Database: Using mock data store (Supabase disabled)")
+
 // News functions
 export async function getAllNews(): Promise<NewsItem[]> {
-  try {
-    if (supabase) {
-      console.log("🔄 Database: Getting news from Supabase...")
-      const { data, error } = await supabase.from("news").select("*").order("date", { ascending: false })
-
-      if (error) throw error
-      console.log(`✅ Database: Retrieved ${data.length} news items from Supabase`)
-      return data
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.getAllNews()
+  console.log("🔄 Database: Getting all news from mock store...")
+  return mockStore.getAllNews()
 }
 
 export async function createNews(data: Omit<NewsItem, "id" | "createdAt" | "updatedAt">): Promise<NewsItem> {
-  try {
-    if (supabase) {
-      console.log("🔄 Database: Creating news in Supabase...")
-      const { data: newNews, error } = await supabase.from("news").insert([data]).select().single()
-
-      if (error) throw error
-      console.log(`✅ Database: Created news in Supabase with ID ${newNews.id}`)
-      return newNews
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.createNews(data)
+  console.log("🔄 Database: Creating news in mock store...")
+  return mockStore.createNews(data)
 }
 
 export async function updateNews(id: string, data: Partial<Omit<NewsItem, "id" | "createdAt">>): Promise<NewsItem> {
-  try {
-    if (supabase) {
-      console.log(`🔄 Database: Updating news ${id} in Supabase...`)
-      const { data: updatedNews, error } = await supabase.from("news").update(data).eq("id", id).select().single()
-
-      if (error) throw error
-      console.log(`✅ Database: Updated news in Supabase with ID ${updatedNews.id}`)
-      return updatedNews
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.updateNews(id, data)
+  console.log(`🔄 Database: Updating news ${id} in mock store...`)
+  return mockStore.updateNews(id, data)
 }
 
 export async function deleteNews(id: string): Promise<void> {
-  try {
-    if (supabase) {
-      console.log(`🔄 Database: Deleting news ${id} from Supabase...`)
-      const { error } = await supabase.from("news").delete().eq("id", id)
-
-      if (error) throw error
-      console.log(`✅ Database: Deleted news from Supabase with ID ${id}`)
-      return
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.deleteNews(id)
+  console.log(`🔄 Database: Deleting news ${id} from mock store...`)
+  mockStore.deleteNews(id)
 }
 
 // User functions
 export async function getUserByEmail(email: string): Promise<User | null> {
-  try {
-    if (supabase) {
-      console.log(`🔄 Database: Getting user by email from Supabase: ${email}`)
-      const { data, error } = await supabase.from("users").select("*").eq("email", email).single()
-
-      if (error && error.code !== "PGRST116") throw error
-      console.log(`✅ Database: User ${email} ${data ? "found" : "not found"} in Supabase`)
-      return data || null
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.getUserByEmail(email)
+  console.log(`🔄 Database: Getting user by email from mock store: ${email}`)
+  return mockStore.getUserByEmail(email)
 }
 
 export async function createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
-  try {
-    if (supabase) {
-      console.log("🔄 Database: Creating user in Supabase...")
-      const { data: newUser, error } = await supabase.from("users").insert([data]).select().single()
-
-      if (error) throw error
-      console.log(`✅ Database: Created user in Supabase with ID ${newUser.id}`)
-      return newUser
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.createUser(data)
+  console.log("🔄 Database: Creating user in mock store...")
+  return mockStore.createUser(data)
 }
 
 // Client functions
-export async function getAllClients(): Promise<any[]> {
-  try {
-    if (supabase) {
-      console.log("🔄 Database: Getting clients from Supabase...")
-      const { data, error } = await supabase.from("clients").select("*").order("name", { ascending: true })
-
-      if (error) throw error
-      console.log(`✅ Database: Retrieved ${data.length} clients from Supabase`)
-      return data
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
-
-  return await mockStore.getAllClients()
+export async function getAllClients(): Promise<Client[]> {
+  console.log("🔄 Database: Getting all clients from mock store...")
+  return mockStore.getAllClients()
 }
 
-export async function createClient(data: any): Promise<any> {
-  try {
-    if (supabase) {
-      console.log("🔄 Database: Creating client in Supabase...")
-      const { data: newClient, error } = await supabase.from("clients").insert([data]).select().single()
+export async function createClient(data: Omit<Client, "id" | "createdAt" | "updatedAt">): Promise<Client> {
+  console.log("🔄 Database: Creating client in mock store...")
+  return mockStore.createClient(data)
+}
 
-      if (error) throw error
-      console.log(`✅ Database: Created client in Supabase with ID ${newClient.id}`)
-      return newClient
-    }
-  } catch (error) {
-    console.log("⚠️ Database: Supabase error, falling back to mock data:", error)
-  }
+export async function updateClient(id: string, data: Partial<Client>): Promise<Client> {
+  console.log(`🔄 Database: Updating client ${id} in mock store...`)
+  return mockStore.updateClient(id, data)
+}
 
-  return await mockStore.createClient(data)
+export async function deleteClient(id: string): Promise<void> {
+  console.log(`🔄 Database: Deleting client ${id} from mock store...`)
+  mockStore.deleteClient(id)
 }

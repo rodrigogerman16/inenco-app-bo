@@ -1,181 +1,154 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { NewsForm } from "./news-form"
+import { DeleteConfirmDialog } from "./delete-confirm-dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, RefreshCw } from "lucide-react"
-import NewsForm from "./news-form"
-import DeleteConfirmDialog from "./delete-confirm-dialog"
 import { getNewsAction, deleteNewsAction } from "@/app/actions/news"
+import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react"
 import type { NewsItem } from "@/lib/database"
 
-export default function NewsManager() {
+export function NewsManager() {
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null)
-  const [deletingNews, setDeletingNews] = useState<NewsItem | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const fetchNews = async () => {
+  const loadNews = async () => {
     try {
-      console.log("🔄 NewsManager: Fetching news...")
-      setLoading(true)
-      const newsData = await getNewsAction()
-      console.log(`✅ NewsManager: Fetched ${newsData.length} news items`)
-      setNews(newsData)
+      setRefreshing(true)
+      console.log("🔄 NewsManager: Loading news...")
+      const data = await getNewsAction()
+      console.log(`✅ NewsManager: Loaded ${data.length} news items`)
+      setNews(data)
     } catch (error) {
-      console.error("❌ NewsManager: Error fetching news:", error)
+      console.error("❌ NewsManager: Error loading news:", error)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
   useEffect(() => {
-    fetchNews()
+    loadNews()
   }, [])
 
-  const handleFormSuccess = () => {
-    setShowForm(false)
-    setEditingNews(null)
-    fetchNews()
-  }
-
-  const handleEdit = (newsItem: NewsItem) => {
-    setEditingNews(newsItem)
+  const handleEdit = (item: NewsItem) => {
+    console.log("✏️ NewsManager: Editing news:", item.id)
+    setEditingNews(item)
     setShowForm(true)
   }
 
-  const handleDelete = async (newsItem: NewsItem) => {
+  const handleDelete = async (id: string) => {
     try {
-      console.log(`🔄 NewsManager: Deleting news ${newsItem.id}...`)
-      const result = await deleteNewsAction(newsItem.id)
-
+      console.log("🗑️ NewsManager: Deleting news:", id)
+      const result = await deleteNewsAction(id)
       if (result.success) {
         console.log("✅ NewsManager: News deleted successfully")
-        setDeletingNews(null)
-        fetchNews()
-      } else {
-        console.error("❌ NewsManager: Error deleting news:", result.error)
+        await loadNews()
+        setDeletingId(null)
       }
     } catch (error) {
       console.error("❌ NewsManager: Error deleting news:", error)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    } catch {
-      return dateString
-    }
+  const handleFormSuccess = async () => {
+    console.log("✅ NewsManager: Form submitted successfully")
+    setShowForm(false)
+    setEditingNews(null)
+    await loadNews()
   }
 
-  if (showForm) {
+  const handleNewNews = () => {
+    console.log("➕ NewsManager: Creating new news")
+    setEditingNews(null)
+    setShowForm(true)
+  }
+
+  if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{editingNews ? "Editar Noticia" : "Nueva Noticia"}</h1>
-        </div>
-        <NewsForm
-          news={editingNews || undefined}
-          onSuccess={handleFormSuccess}
-          onCancel={() => {
-            setShowForm(false)
-            setEditingNews(null)
-          }}
-        />
+      <div className="flex items-center justify-center p-8">
+        <RefreshCw className="h-8 w-8 animate-spin" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Gestión de Noticias</h1>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Gestión de Noticias</h2>
+          <p className="text-muted-foreground">Administra las noticias que aparecen en la página principal</p>
+        </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchNews} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+          <Button onClick={loadNews} variant="outline" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Actualizar
           </Button>
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={handleNewNews}>
+            <Plus className="h-4 w-4 mr-2" />
             Nueva Noticia
           </Button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      ) : news.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-gray-500 mb-4">No hay noticias disponibles</p>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Crear Primera Noticia
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6">
-          {news.map((newsItem) => (
-            <Card key={newsItem.id}>
+      {showForm && <NewsForm news={editingNews || undefined} onSuccess={handleFormSuccess} />}
+
+      <div className="grid gap-4">
+        {news.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center p-8">
+              <p className="text-muted-foreground mb-4">No hay noticias publicadas</p>
+              <Button onClick={handleNewNews}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Primera Noticia
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          news.map((item) => (
+            <Card key={item.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-xl mb-2">{newsItem.title}</CardTitle>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="secondary">{formatDate(newsItem.date)}</Badge>
-                      <span className="text-sm text-gray-500">Creado: {formatDate(newsItem.createdAt)}</span>
-                      {newsItem.updatedAt !== newsItem.createdAt && (
-                        <span className="text-sm text-gray-500">• Actualizado: {formatDate(newsItem.updatedAt)}</span>
-                      )}
-                    </div>
+                    <CardTitle>{item.title}</CardTitle>
+                    <CardDescription>{item.shortDescription}</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(newsItem)}>
-                      <Edit className="w-4 h-4" />
+                    <Button size="icon" variant="outline" onClick={() => handleEdit(item)}>
+                      <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setDeletingNews(newsItem)}>
-                      <Trash2 className="w-4 h-4" />
+                    <Button size="icon" variant="destructive" onClick={() => setDeletingId(item.id)}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">{newsItem.shortDescription}</p>
-                <div className="text-sm text-gray-500">
-                  <p className="line-clamp-3">{newsItem.content}</p>
-                </div>
-                {newsItem.image && (
-                  <div className="mt-4">
-                    <img
-                      src={newsItem.image || "/placeholder.svg"}
-                      alt={newsItem.title}
-                      className="w-full h-32 object-cover rounded-md"
-                    />
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{item.content}</p>
+                  <div className="flex gap-2">
+                    <Badge variant="outline">{new Date(item.date).toLocaleDateString("es-ES")}</Badge>
+                    <Badge variant="secondary">ID: {item.id}</Badge>
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
       <DeleteConfirmDialog
-        open={!!deletingNews}
-        onOpenChange={(open) => !open && setDeletingNews(null)}
-        onConfirm={() => deletingNews && handleDelete(deletingNews)}
-        title="Eliminar Noticia"
-        description={`¿Estás seguro de que deseas eliminar la noticia "${deletingNews?.title}"? Esta acción no se puede deshacer.`}
+        open={deletingId !== null}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        onConfirm={() => deletingId && handleDelete(deletingId)}
+        title="¿Eliminar noticia?"
+        description="Esta acción no se puede deshacer. La noticia será eliminada permanentemente."
       />
     </div>
   )

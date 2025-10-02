@@ -19,13 +19,7 @@ interface DeleteConfirmDialogProps {
   description: string
 }
 
-export default function DeleteConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  title,
-  description,
-}: DeleteConfirmDialogProps) {
+export function DeleteConfirmDialog({ open, onOpenChange, onConfirm, title, description }: DeleteConfirmDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -35,7 +29,10 @@ export default function DeleteConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             Eliminar
           </AlertDialogAction>
         </AlertDialogFooter>
