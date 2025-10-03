@@ -5,42 +5,54 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import Image from "next/image"
+import { supabase } from '@/lib/supabaseClient';
 
 interface Client {
-  id: string
-  name: string
-  image: string
+  id: string;
+  name: string;
+  image: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const clientGroups = {
-  "A - C": ["YPF", "Pampa Energía", "Tecpetrol"],
-  "D - H": ["Pan American Energy", "Total Austral"],
-  "I - N": ["Pluspetrol"],
+  "A - C": [],
+  "D - H": [],
+  "I - N": [],
   "O - Z": [],
 }
 
 export default function ClientsSection() {
-  const [clients, setClients] = useState<Client[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchClients()
   }, [])
 
-  async function fetchClients() {
-    try {
-      const response = await fetch("/api/clients")
-      const data = await response.json()
-      setClients(data)
-    } catch (error) {
-      console.error("Error fetching clients:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+async function fetchClients() {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  const displayClients = clients.slice(0, 6)
+    console.log('Supabase data:', data);
+    console.log('Supabase error:', error);
+
+    if (error) {
+      console.error("Error al buscar Clientes:", error);
+      return;
+    }
+
+    setClients(data || []);
+  } catch (error) {
+    console.error("Error inesperado al buscar Clientes:", error);
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <>
@@ -52,20 +64,24 @@ export default function ClientsSection() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
-                {displayClients.map((client) => (
-                  <div
-                    key={client.id}
-                    className="flex items-center justify-center p-4 bg-background rounded-lg shadow-sm"
-                  >
-                    <Image
-                      src={client.image || "/placeholder.svg"}
-                      alt={client.name}
-                      width={100}
-                      height={100}
-                      className="object-contain"
-                    />
-                  </div>
-                ))}
+                   
+        {clients.map((client) => (
+          <div key={client.id} className="flex items-center justify-around p-4 bg-background rounded-lg shadow-sm">
+            <span>{client.name}</span>
+            <span className="text-sm text-gray-500">
+              <Image
+        src={client.image || '/placeholder.svg'}
+        alt={client.name}
+        width={50}
+        height={50}
+        className="rounded-full object-cover"
+      />
+            </span>
+          </div>
+        ))}
+        {clients.length === 0 && (
+          <li className="p-3 text-gray-500 text-center">No clients yet</li>
+        )}
               </div>
               <p className="text-center text-lg mb-4">Estos son algunos de nuestros Clientes</p>
               <div className="text-center">
