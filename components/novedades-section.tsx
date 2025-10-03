@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Skeleton } from "@/components/ui/skeleton"
 import Image from "next/image"
+import { GetServerSideProps } from "next"
 
 interface NewsItem {
   id: string
@@ -24,13 +25,10 @@ export default function NovedadesSection() {
     async function fetchNews() {
       try {
         console.log("🔄 NovedadesSection: Fetching news...")
-        const response = await fetch("/api/news", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        })
+        const response = await fetch(`/api/news?ts=${Date.now()}`, {
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+});
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -114,7 +112,7 @@ export default function NovedadesSection() {
                   <CardContent className="p-6">
                     <div className="relative h-48 mb-4">
                       <Image
-                        src={item.image || "/placeholder.svg"}
+                        src={"https://picsum.photos/200" || item.image}
                         alt={item.title}
                         fill
                         className="object-cover rounded-md"
