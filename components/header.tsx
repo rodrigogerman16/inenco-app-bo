@@ -16,7 +16,6 @@ export default function Header() {
     { href: "/#productos", label: "Productos" },
     { href: "/#clientes", label: "Clientes" },
     { href: "/#novedades", label: "Novedades" },
-    { href: "/#contacto", label: "Contacto" },
   ]
 
   const solucionesLinks = [
@@ -79,13 +78,20 @@ export default function Header() {
               ))}
             </div>
           </div>
+          <Link
+              key={"contacto"}
+              className="text-gray-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-colors"
+              href={"/#contacto"}
+            >
+              {"Contacto"}
+            </Link>
         </nav>
       </div>
 
       {/* Admin Login Button */}
       <div className="hidden md:block">
         <Link href="/admin">
-          <Button variant="outline" size="sm" className="bg-transparent">
+          <Button variant="outline" size="sm" className="bg-white">
             <User className="h-4 w-4 mr-2" />
             Entrar
           </Button>
