@@ -1,11 +1,9 @@
-"use client"
-
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-
+import type { EmblaCarouselType } from "embla-carousel"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -31,6 +29,34 @@ type CarouselContextProps = {
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
+
+export function useTicker(api: EmblaCarouselType | undefined, speed = 0.5) {
+  React.useEffect(() => {
+    if (!api) return
+    let rafId: number
+    let position = 0
+
+    const container = api.containerNode() as HTMLElement
+    const slides = api.slideNodes()
+    if (!slides.length) return
+
+    const slideWidth = slides[0].offsetWidth
+    const totalWidth = slideWidth * slides.length
+
+    const step = () => {
+      position -= speed
+      if (Math.abs(position) >= totalWidth / 2) {
+        // ✅ reset back when we've scrolled halfway (because we duplicated slides)
+        position = 0
+      }
+      container.style.transform = `translateX(${position}px)`
+      rafId = requestAnimationFrame(step)
+    }
+
+    rafId = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(rafId)
+  }, [api, speed])
+}
 
 function useCarousel() {
   const context = React.useContext(CarouselContext)
@@ -59,11 +85,12 @@ const Carousel = React.forwardRef<
     ref
   ) => {
     const [carouselRef, api] = useEmblaCarousel(
-      {
-        ...opts,
-        axis: orientation === "horizontal" ? "x" : "y",
-      },
-      plugins
+    {
+      loop: true, // ✅ infinite looping
+      ...opts,
+      axis: orientation === "horizontal" ? "x" : "y",
+    },
+    plugins
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
