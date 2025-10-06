@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import Image from "next/image"
 import { supabase } from '@/lib/supabaseClient';
+import { useTicker } from "@/components/ui/carousel"
+import useEmblaCarousel from "embla-carousel-react"
 
 interface Client {
   id: string;
@@ -26,6 +28,12 @@ export default function ClientsSection() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+const [emblaRef, emblaApi] = useEmblaCarousel({
+  loop: true,
+  align: "start",
+})
+
+useTicker(emblaApi, 0.5)
 
   useEffect(() => {
     fetchClients()
@@ -56,42 +64,48 @@ async function fetchClients() {
 
   return (
     <>
-      <section id="clientes" className="py-20 px-4 bg-muted/50">
-        <div className="container mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-4">Nuestros Clientes</h2>
-          {loading ? (
-            <div className="text-center">Cargando clientes...</div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-8">
-                   
-        {clients.map((client) => (
-          <div key={client.id} className="flex items-center justify-around p-4 bg-background rounded-lg shadow-sm">
-            <span>{client.name}</span>
-            <span className="text-sm text-gray-500">
-              <Image
-        src={client.image || '/placeholder.svg'}
-        alt={client.name}
-        width={50}
-        height={50}
-        className="rounded-full object-cover"
-      />
-            </span>
+      <section id="clientes" className="py-20 bg-muted/50">
+      <div className="container m-0 p-0 max-w-full">
+        <h2 className="text-4xl font-bold text-center mb-8">Nuestros Clientes</h2>
+
+        {loading ? (
+          <div className="text-center">Cargando clientes...</div>
+        ) : clients.length === 0 ? (
+          <div className="text-center text-gray-500">No clients yet</div>
+        ) : (
+          <div
+            className="overflow-hidden pointer-events-none" // ✅ disables dragging
+            ref={emblaRef}
+          >
+            <div className="overflow-hidden pointer-events-none" ref={emblaRef}>
+            <div className="flex">
+              {[...clients, ...clients].map((client, index) => (
+                <div
+                  key={`${client.id}-${index}`}
+                  className="flex flex-col items-center justify-center min-w-[150px] p-4"
+                >
+                  <Image
+                    src={client.image || "/placeholder.svg"}
+                    alt={client.name}
+                    width={80}
+                    height={80}
+                    className="rounded-full object-cover mb-2"
+                  />
+                  <span className="font-medium text-center text-sm">{client.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-        {clients.length === 0 && (
-          <li className="p-3 text-gray-500 text-center">No clients yet</li>
+          </div>
         )}
-              </div>
-              <p className="text-center text-lg mb-4">Estos son algunos de nuestros Clientes</p>
-              <div className="text-center">
+      </div>
+              
+              <div className="text-center mt-8">
                 <Button onClick={() => setIsModalOpen(true)} variant="outline" size="lg">
-                  Ver lista completa de clientes
+                  Ver lista completa
                 </Button>
               </div>
-            </>
-          )}
-        </div>
+            
       </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
