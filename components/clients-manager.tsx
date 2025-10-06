@@ -1,111 +1,161 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Pencil, Trash2 } from "lucide-react"
-import ClientForm from "./client-form"
-import DeleteConfirmDialog from "./delete-confirm-dialog"
-import { getClientsAction, deleteClientAction } from "@/app/actions/clients"
-import type { Client } from "@/lib/database"
+import { useEffect, useState } from "react"
 import Image from "next/image"
+import { getClients, createClient, updateClient, deleteClient } from "@/lib/clients"
+import { uploadClientImage } from "@/lib/uploadClientImage"
 
-export default function ClientsManager() {
-  const [clients, setClients] = useState<Client[]>([])
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+export default function ClientsDashboard() {
+  const [clients, setClients] = useState<any[]>([])
+  const [newName, setNewName] = useState("")
+  const [newFile, setNewFile] = useState<File | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editFile, setEditFile] = useState<File | null>(null)
+  const [editImage, setEditImage] = useState<string>("")
 
   useEffect(() => {
     loadClients()
   }, [])
 
   async function loadClients() {
-    setLoading(true)
-    const data = await getClientsAction()
-    setClients(data)
-    setLoading(false)
+    try {
+      const data = await getClients()
+      setClients(data)
+    } catch (error) {
+      console.error("Error loading clients:", error)
+    }
+  }
+
+  async function handleCreate() {
+    if (!newName) return
+
+    let imageUrl = null
+    if (newFile) {
+      imageUrl = await uploadClientImage(newFile)
+    }
+
+    await createClient(newName, imageUrl)
+    setNewName("")
+    setNewFile(null)
+    loadClients()
+  }
+
+  async function handleUpdate(id: string) {
+    let imageUrl = editImage
+
+    if (editFile) {
+      imageUrl = await uploadClientImage(editFile)
+    }
+
+    await updateClient(id, { name: editName, image: imageUrl })
+    setEditing(null)
+    setEditFile(null)
+    setEditImage("")
+    loadClients()
   }
 
   async function handleDelete(id: string) {
-    await deleteClientAction(id)
-    loadClients()
-  }
-
-  function handleEdit(client: Client) {
-    setSelectedClient(client)
-    setIsDialogOpen(true)
-  }
-
-  function handleSuccess() {
-    setIsDialogOpen(false)
-    setSelectedClient(null)
-    loadClients()
-  }
-
-  if (loading) {
-    return <div className="text-center py-8">Cargando...</div>
+    if (confirm("Are you sure you want to delete this client?")) {
+      await deleteClient(id)
+      loadClients()
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestión de Clientes</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setSelectedClient(null)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Cliente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{selectedClient ? "Editar" : "Crear"} Cliente</DialogTitle>
-            </DialogHeader>
-            <ClientForm client={selectedClient || undefined} onSuccess={handleSuccess} />
-          </DialogContent>
-        </Dialog>
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Clients Dashboard</h1>
+
+      {/* Create new client */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Client name"
+          className="border p-2 rounded w-full sm:w-1/3"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setNewFile(e.target.files?.[0] || null)}
+          className="border p-2 rounded w-full sm:w-1/3"
+        />
+        <button
+          onClick={handleCreate}
+          className="bg-green-600 text-white px-4 py-2 rounded w-full sm:w-1/3"
+        >
+          Add
+        </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Clients list */}
+      <ul className="divide-y border rounded">
         {clients.map((client) => (
-          <Card key={client.id}>
-            <CardHeader>
-              <div className="relative h-24 mb-2 flex items-center justify-center">
-                <Image
-                  src={client.image || "/placeholder.svg"}
-                  alt={client.name}
-                  width={100}
-                  height={100}
-                  className="object-contain"
+          <li key={client.id} className="p-3 flex flex-col sm:flex-row sm:items-center gap-4">
+            {editing === client.id ? (
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="border p-2 rounded w-full sm:w-1/3"
+                  placeholder="Edit name"
                 />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditFile(e.target.files?.[0] || null)}
+                  className="border p-2 rounded w-full sm:w-1/3"
+                />
+                <button
+                  onClick={() => handleUpdate(client.id)}
+                  className="bg-blue-600 text-white px-3 py-2 rounded w-full sm:w-1/3"
+                >
+                  Save
+                </button>
               </div>
-              <CardTitle className="text-lg text-center">{client.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2 justify-center">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <DeleteConfirmDialog onConfirm={() => handleDelete(client.id)}>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </DeleteConfirmDialog>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 flex-1">
+                  <Image
+                    src={client.image || "/placeholder.svg"}
+                    alt={client.name}
+                    width={50}
+                    height={50}
+                    className="rounded-full object-cover"
+                  />
+                  <span>{client.name}</span>
+                </div>
 
-      {clients.length === 0 && (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">No hay clientes. Crea uno para comenzar.</p>
-          </CardContent>
-        </Card>
-      )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditing(client.id)
+                      setEditName(client.name)
+                      setEditImage(client.image || "")
+                      setEditFile(null)
+                    }}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(client.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </li>
+        ))}
+
+        {clients.length === 0 && (
+          <li className="p-3 text-gray-500 text-center">No clients yet</li>
+        )}
+      </ul>
     </div>
   )
 }
