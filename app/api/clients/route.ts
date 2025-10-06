@@ -1,21 +1,16 @@
-import { NextResponse } from "next/server"
-import { getClients } from "@/lib/database"
-
-export const dynamic = "force-dynamic"
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function GET() {
-  try {
-    console.log("📡 API: Fetching clients...")
-    const clients = await getClients()
-    console.log(`📡 API: Found ${clients.length} clients`)
+  const { data, error } = await supabase.from("clients").select("*");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
+}
 
-    return NextResponse.json(clients, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-  } catch (error) {
-    console.error("❌ API: Error fetching clients:", error)
-    return NextResponse.json({ error: "Failed to fetch clients" }, { status: 500 })
-  }
+export async function POST(req: Request) {
+  const body = await req.json();
+  const { name, image } = body;
+  const { data, error } = await supabase.from("clients").insert([{ name, image }]).select().single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }
