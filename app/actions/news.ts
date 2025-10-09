@@ -1,7 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getNews, getNewsById, createNews, updateNews, deleteNews, type NewsItem } from "@/lib/database"
+import { getNews, createNews, updateNews, deleteNews } from "@/lib/news"
+import type { NewsItem } from "@/lib/mockDatabase"
 
 export async function getNewsAction(): Promise<NewsItem[]> {
   try {
@@ -22,35 +23,41 @@ export async function getNewsByIdAction(id: string): Promise<NewsItem | null> {
   }
 }
 
-export async function createNewsAction(prevState: any, formData: FormData) {
+// CREATE NEWS
+export async function createNewsAction(formData: FormData) {
   try {
     const title = formData.get("title")?.toString()
     const shortDescription = formData.get("shortDescription")?.toString()
     const content = formData.get("content")?.toString()
     const image = formData.get("image")?.toString()
 
-    if (!title || !shortDescription || !content || !image) {
-      return { error: "Todos los campos son requeridos" }
-    }
-
-    await createNews({
+    console.log("🧾 [createNewsAction] received form data:", {
       title,
       shortDescription,
       content,
       image,
     })
 
+    if (!title || !shortDescription || !content || !image) {
+      return { error: "Todos los campos son requeridos" }
+    }
+
+    // Supabase function expects the arguments in order
+    const result = await createNews(title, shortDescription, content, image)
+    console.log("✅ [createNewsAction] created news:", result)
+
     revalidatePath("/")
     revalidatePath("/dashboard/news")
 
-    return { success: true }
+    return { success: true, data: result }
   } catch (error) {
-    console.error("❌ Error creating news:", error)
+    console.error("❌ [createNewsAction] Error creating news:", error)
     return { error: "Error al crear la noticia" }
   }
 }
 
-export async function updateNewsAction(prevState: any, formData: FormData) {
+// UPDATE NEWS
+export async function updateNewsAction(formData: FormData) {
   try {
     const id = formData.get("id")?.toString()
     const title = formData.get("title")?.toString()
@@ -58,23 +65,32 @@ export async function updateNewsAction(prevState: any, formData: FormData) {
     const content = formData.get("content")?.toString()
     const image = formData.get("image")?.toString()
 
-    if (!id || !title || !shortDescription || !content || !image) {
-      return { error: "Todos los campos son requeridos" }
-    }
-
-    await updateNews(id, {
+    console.log("🧾 [updateNewsAction] received form data:", {
+      id,
       title,
       shortDescription,
       content,
       image,
     })
 
+    if (!id || !title || !shortDescription || !content || !image) {
+      return { error: "Todos los campos son requeridos" }
+    }
+
+    const result = await updateNews(id, {
+      title,
+      shortDescription,
+      content,
+      image,
+    })
+    console.log("✅ [updateNewsAction] updated news:", result)
+
     revalidatePath("/")
     revalidatePath("/dashboard/news")
 
-    return { success: true }
+    return { success: true, data: result }
   } catch (error) {
-    console.error("❌ Error updating news:", error)
+    console.error("❌ [updateNewsAction] Error updating news:", error)
     return { error: "Error al actualizar la noticia" }
   }
 }
