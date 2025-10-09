@@ -34,18 +34,34 @@ export async function createNews(
 
 export async function updateNews(
   id: string,
-  updates: Partial<Pick<NewsItem, "title" | "shortDescription" | "content" | "image">>
-): Promise<NewsItem> {
+  updates: Partial<{
+    title: string
+    shortDescription: string
+    content: string
+    image: string
+  }>
+) {
   const { data, error } = await supabase
     .from("news")
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single()
+    .update({
+      title: updates.title,
+      content: updates.content,
+      image: updates.image,
+      short_description: updates.shortDescription,
+    })
+    .eq("id", Number(id)) 
+    .select("*")
+    .maybeSingle()
 
-  if (error) throw new Error(error.message)
-  return data as NewsItem
+  if (error) {
+    console.error("❌ Supabase update error:", error)
+    throw error
+  }
+
+  console.log("✅ Supabase updated row:", data)
+  return data
 }
+
 
 export async function deleteNews(id: string): Promise<boolean> {
   const { error } = await supabase.from("news").delete().eq("id", id)
@@ -53,13 +69,9 @@ export async function deleteNews(id: string): Promise<boolean> {
   return true
 }
 
-/**
- * Uploads an image to Supabase Storage and returns the public URL.
- * Make sure your bucket name matches what's in your Supabase project.
- */
 export async function uploadImage(file: File): Promise<string | null> {
   const fileName = `${Date.now()}-${file.name}`
-  const bucket = "news-images" // ✅ Use a dedicated bucket
+  const bucket = "news-images" 
 
   const { data, error } = await supabase.storage
     .from(bucket)
