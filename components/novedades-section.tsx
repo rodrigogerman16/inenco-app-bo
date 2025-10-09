@@ -5,15 +5,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Skeleton } from "@/components/ui/skeleton"
 import Image from "next/image"
-import { GetServerSideProps } from "next"
+import { supabase } from "@/lib/supabaseClient"
 
 interface NewsItem {
   id: string
   title: string
-  shortDescription: string
+  short_description: string
   content: string
-  image: string
-  createdAt: string
+  image: string | null
+  created_at: string
+  updated_at: string
 }
 
 export default function NovedadesSection() {
@@ -22,25 +23,18 @@ export default function NovedadesSection() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchNews() {
+    const fetchNews = async () => {
       try {
-        console.log("🔄 NovedadesSection: Fetching news...")
-        const response = await fetch(`/api/news?ts=${Date.now()}`, {
-  method: "GET",
-  headers: { "Content-Type": "application/json" },
-});
+        const { data, error } = await supabase
+          .from("news")
+          .select("*")
+          .order("created_at", { ascending: false })
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log("✅ NovedadesSection: Fetched news:", data)
-        setNews(data)
-        setError(null)
-      } catch (err) {
-        console.error("❌ NovedadesSection: Error fetching news:", err)
-        setError(err instanceof Error ? err.message : "Error desconocido")
+        if (error) throw error
+        setNews(data || [])
+      } catch (err: any) {
+        console.error("Error fetching news:", err)
+        setError(err.message || "Error desconocido")
       } finally {
         setLoading(false)
       }
@@ -108,18 +102,20 @@ export default function NovedadesSection() {
           <CarouselContent>
             {news.map((item) => (
               <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full">
-                  <CardContent className="p-6">
+                <Card className="h-full transition hover:shadow-lg">
+                  <CardContent className="p-6 flex flex-col justify-between">
                     <div className="relative h-48 mb-4">
                       <Image
-                        src={"https://picsum.photos/200" || item.image}
+                        src={item.image || "https://picsum.photos/500"}
                         alt={item.title}
                         fill
                         className="object-cover rounded-md"
                       />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                    <p className="text-muted-foreground text-sm">{item.shortDescription}</p>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                      <p className="text-muted-foreground text-sm">{item.short_description}</p>
+                    </div>
                   </CardContent>
                 </Card>
               </CarouselItem>
