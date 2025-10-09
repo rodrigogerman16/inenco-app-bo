@@ -42,7 +42,6 @@ export async function createNewsAction(formData: FormData) {
       return { error: "Todos los campos son requeridos" }
     }
 
-    // Supabase function expects the arguments in order
     const result = await createNews(title, shortDescription, content, image)
     console.log("✅ [createNewsAction] created news:", result)
 
@@ -65,7 +64,7 @@ export async function updateNewsAction(formData: FormData) {
     const content = formData.get("content")?.toString()
     const image = formData.get("image")?.toString()
 
-    console.log("🧾 [updateNewsAction] received form data:", {
+    console.log("🧾 [updateNewsAction] Data received:", {
       id,
       title,
       shortDescription,
@@ -74,6 +73,7 @@ export async function updateNewsAction(formData: FormData) {
     })
 
     if (!id || !title || !shortDescription || !content || !image) {
+      console.error("🚫 Missing required fields")
       return { error: "Todos los campos son requeridos" }
     }
 
@@ -83,14 +83,12 @@ export async function updateNewsAction(formData: FormData) {
       content,
       image,
     })
-    console.log("✅ [updateNewsAction] updated news:", result)
 
-    revalidatePath("/")
-    revalidatePath("/dashboard/news")
+    console.log("✅ [updateNewsAction] Supabase response:", result)
 
     return { success: true, data: result }
   } catch (error) {
-    console.error("❌ [updateNewsAction] Error updating news:", error)
+    console.error("❌ [updateNewsAction] Error:", error)
     return { error: "Error al actualizar la noticia" }
   }
 }
