@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -21,6 +23,8 @@ export default function NovedadesSection() {
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -42,6 +46,11 @@ export default function NovedadesSection() {
 
     fetchNews()
   }, [])
+
+  function openModal(item: NewsItem) {
+    setSelectedNews(item)
+    setIsDialogOpen(true)
+  }
 
   if (loading) {
     return (
@@ -104,18 +113,25 @@ export default function NovedadesSection() {
               <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition hover:shadow-lg">
                   <CardContent className="p-6 flex flex-col justify-between">
-                    <div className="relative h-48 mb-4">
-                      <Image
-                        src={item.image || "https://picsum.photos/500"}
-                        alt={item.title}
-                        fill
-                        className="object-cover rounded-md"
-                      />
-                    </div>
                     <div>
+                      <div className="relative h-48 mb-4">
+                        <Image
+                          src={item.image || "https://picsum.photos/500"}
+                          alt={item.title}
+                          fill
+                          className="object-cover rounded-md"
+                        />
+                      </div>
                       <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                      <p className="text-muted-foreground text-sm">{item.short_description}</p>
+                      <p className="text-muted-foreground text-sm line-clamp-3">{item.short_description}</p>
                     </div>
+                    <Button
+                      variant="secondary"
+                      className="mt-4 w-full"
+                      onClick={() => openModal(item)}
+                    >
+                      Ver más
+                    </Button>
                   </CardContent>
                 </Card>
               </CarouselItem>
@@ -125,6 +141,35 @@ export default function NovedadesSection() {
           <CarouselNext />
         </Carousel>
       </div>
+
+      {/* Modal for detailed view */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedNews && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold mb-4">
+                  {selectedNews.title}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="relative w-full h-64 mb-4">
+                <Image
+                  src={selectedNews.image || "https://picsum.photos/600"}
+                  alt={selectedNews.title}
+                  fill
+                  className="object-cover rounded-md"
+                />
+              </div>
+              <p className="text-muted-foreground mb-4">
+                {selectedNews.short_description}
+              </p>
+              <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-line">
+                {selectedNews.content}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
