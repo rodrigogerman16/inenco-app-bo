@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getClients, getClientById, createClient, updateClient, deleteClient, type Client } from "@/lib/database"
+import { getClients, getClientById, createClient, updateClient, deleteClient, type Client } from "@/lib/mockDatabase"
 
 export async function getClientsAction(): Promise<Client[]> {
   try {

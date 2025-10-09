@@ -1,7 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { getUserByEmail } from "@/lib/database"
+import { getUserByEmail } from "@/lib/mockDatabase"
 import { createSession, deleteSession } from "@/lib/auth"
 
 export async function loginAction(prevState: any, formData: FormData) {

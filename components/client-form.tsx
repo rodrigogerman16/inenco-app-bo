@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { createClientAction, updateClientAction } from "@/app/actions/clients"
-import type { Client } from "@/lib/database"
+import type { Client } from "@/lib/mockDatabase"
 
 interface ClientFormProps {
   client?: Client
