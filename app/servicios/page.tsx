@@ -107,9 +107,7 @@ export default function ServiciosPage() {
         {/* Hero Section */}
         <section
           ref={heroRef}
-          className={`relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center text-center px-4 transition-opacity duration-1000 ${
-            heroLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center text-center px-4$`}
         >
           <Image
             src="/placeholder.svg?height=1080&width=1920&text=Nuestros+Servicios"
@@ -139,9 +137,7 @@ export default function ServiciosPage() {
                   <div
                     id={service.id}
                     ref={ref} // Apply the ref from this specific hook call
-                    className={`relative flex flex-col lg:flex-row items-center gap-8 py-12 md:py-16 overflow-hidden
-                                transition-all duration-1000 ease-out
-                                ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`} // Fade-in from center
+                    className={`relative flex flex-col lg:flex-row items-center gap-8 py-12 md:py-16 overflow-hidden`} // Fade-in from center
                   >
                     {/* Background Image for each section */}
                     <Image
@@ -173,7 +169,7 @@ export default function ServiciosPage() {
       {showBackToTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 rounded-full shadow-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors z-50"
+          className="fixed bottom-8 right-8 p-3 rounded-full shadow-lg bg-teal-600 text-white hover:bg-teal-700 z-50"
           size="icon"
         >
           <ArrowUpIcon className="h-6 w-6" />
