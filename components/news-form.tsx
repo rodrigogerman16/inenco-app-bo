@@ -1,15 +1,17 @@
 "use client"
 
-import { useActionState } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Image as ImageIcon } from "lucide-react"
+import Image from "next/image"
+import { uploadImage } from "@/lib/news"
 import { createNewsAction, updateNewsAction } from "@/app/actions/news"
-import type { NewsItem } from "@/lib/database"
+import type { NewsItem } from "@/lib/mockDatabase"
 
 interface NewsFormProps {
   news?: NewsItem
@@ -17,20 +19,60 @@ interface NewsFormProps {
 }
 
 export default function NewsForm({ news, onSuccess }: NewsFormProps) {
-  const action = news ? updateNewsAction : createNewsAction
-  const [state, formAction, isPending] = useActionState(action, null)
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(news?.image || null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
-  if (state?.success && onSuccess) {
-    onSuccess()
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+
+    const formData = new FormData(e.currentTarget)
+
+    if (imageFile) {
+      const uploadedUrl = await uploadImage(imageFile)
+      if (!uploadedUrl) {
+        setError("No se pudo subir la imagen. Inténtalo nuevamente.")
+        return
+      }
+      formData.set("image", uploadedUrl)
+    }
+
+    const action = news ? updateNewsAction : createNewsAction
+
+    startTransition(async () => {
+      const result = await action(formData)
+      if (result?.success) {
+        onSuccess?.()
+      } else if (result?.error) {
+        setError(result.error)
+      }
+    })
   }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const url = URL.createObjectURL(file)
+      setPreview(url)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{news ? "Editar" : "Crear"} Noticia</CardTitle>
+        <CardTitle>{news ? "Editar Noticia" : "Crear Noticia"}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {news && <input type="hidden" name="id" value={news.id} />}
 
           <div className="space-y-2">
@@ -64,22 +106,39 @@ export default function NewsForm({ news, onSuccess }: NewsFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">URL de Imagen</Label>
-            <Input
-              id="image"
-              name="image"
-              type="url"
-              required
-              disabled={isPending}
-              defaultValue={news?.image}
-              placeholder="https://ejemplo.com/imagen.jpg"
-            />
+            <Label>Imagen</Label>
+            {preview ? (
+              <div className="relative w-full h-48">
+                <Image src={preview} alt="Vista previa" fill className="object-cover rounded-md" />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 border border-dashed rounded-md text-muted-foreground">
+                <ImageIcon className="w-8 h-8 opacity-50" />
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={isPending}
+              />
+              <Input
+                id="image"
+                name="image"
+                type="url"
+                placeholder="o pega la URL de una imagen..."
+                defaultValue={news?.image}
+                disabled={isPending}
+              />
+            </div>
           </div>
 
-          {state?.error && (
+          {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{state.error}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
