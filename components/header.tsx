@@ -88,16 +88,6 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Admin Login Button */}
-      <div className="hidden md:block">
-        <Link href="/admin">
-          <Button variant="outline" size="sm" className="bg-white">
-            <User className="h-4 w-4 mr-2" />
-            Entrar
-          </Button>
-        </Link>
-      </div>
-
       <Sheet>
         <SheetTrigger asChild>
           <Button className="ml-auto md:hidden bg-transparent" size="icon" variant="outline">
@@ -140,15 +130,6 @@ export default function Header() {
                   </Link>
                 ))}
               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Link
-                href="/admin"
-                className="flex items-center py-2 text-gray-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Login
-              </Link>
             </div>
           </nav>
         </SheetContent>
