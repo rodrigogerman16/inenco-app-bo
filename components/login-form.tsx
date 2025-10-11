@@ -26,10 +26,9 @@ export default function LoginForm() {
               id="email"
               name="email"
               type="email"
-              placeholder="admin@inenco.com"
+              placeholder="ejemplo@gmail.com"//admin@inenco.com
               required
               disabled={isPending}
-              defaultValue="admin@inenco.com"
             />
           </div>
           <div className="space-y-2">
@@ -38,10 +37,9 @@ export default function LoginForm() {
               id="password"
               name="password"
               type="password"
-              placeholder="admin123"
+              placeholder="Contraseña"//admin123
               required
               disabled={isPending}
-              defaultValue="admin123"
             />
           </div>
           {state?.error && (
@@ -60,11 +58,6 @@ export default function LoginForm() {
               "Entrar"
             )}
           </Button>
-          <div className="text-sm text-muted-foreground text-center mt-4 p-3 bg-muted rounded-md">
-            <p className="font-semibold mb-1">Credenciales de prueba:</p>
-            <p className="font-mono">admin@inenco.com</p>
-            <p className="font-mono">admin123</p>
-          </div>
         </form>
       </CardContent>
     </Card>
