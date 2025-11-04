@@ -13,9 +13,6 @@ export default function Header() {
   const navLinks = [
     { href: "/", label: "Inicio" },
     { href: "/servicios", label: "Servicios" },
-    { href: "/#productos", label: "Productos" },
-    { href: "/#clientes", label: "Clientes" },
-    { href: "/#novedades", label: "Novedades" },
   ]
 
   const solucionesLinks = [
@@ -81,7 +78,7 @@ export default function Header() {
           <Link
               key={"contacto"}
               className="text-gray-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-colors"
-              href={"/#contacto"}
+              href={"/contacto"}
             >
               {"Contacto"}
             </Link>
