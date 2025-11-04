@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button"
 import { SheetTrigger, SheetContent, Sheet } from "@/components/ui/sheet"
 import { MenuIcon, ChevronDown, User } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function Header() {
+  useEffect(() => {
+    console.log("Header mounted")
+  }, [])
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const navLinks = [
@@ -24,7 +27,7 @@ export default function Header() {
   ]
 
   return (
-    <header className="fixed top-0 z-50 flex h-20 w-full shrink-0 items-center px-4 md:px-6 bg-white/80 backdrop-blur-md dark:bg-gray-950/80 shadow-sm justify-between">
+    <header className="fixed top-0 z-50 flex h-20 w-full shrink-0 items-center px-4 md:px-6 bg-red-400/90 backdrop-blur-md dark:bg-gray-950/80 shadow-sm justify-between">
       <div className="flex items-center flex-1 md:justify-around">
         <Link className="flex items-center" href="/">
           <Image
@@ -76,7 +79,7 @@ export default function Header() {
             </div>
           </div>
           <Link
-              key={"contacto"}
+              key={"/contacto"}
               className="text-gray-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400 transition-colors"
               href={"/contacto"}
             >
