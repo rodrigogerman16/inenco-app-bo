@@ -35,7 +35,7 @@ export default function HeroSection() {
               Nuestros Servicios
             </Button>
           </Link>
-          <Link href="/#contacto">
+          <Link href="/contacto">
             <Button
               className="px-8 py-3 text-lg border border-white text-white hover:bg-white hover:text-teal-600 transition-colors duration-300 bg-transparent"
               variant="outline"
