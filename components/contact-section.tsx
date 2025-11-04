@@ -5,15 +5,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { MailIcon, PhoneIcon, MapPinIcon } from "lucide-react" // Importing Lucide React icons
-import { useInViewAnimation } from "@/hooks/use-in-view-animation"
+
 
 export default function ContactSection() {
-  const { ref, isInView } = useInViewAnimation({ threshold: 0.1 })
   return (
     <section id="contacto" className="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-900">
       <div className="container px-4 md:px-6">
         <div
-          ref={ref}
           className={`flex flex-col items-center justify-center space-y-4 text-center`}
         >
           <div className="space-y-2">
